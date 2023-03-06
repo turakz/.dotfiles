@@ -99,6 +99,11 @@ _G.packer_plugins = {
     path = "/home/harryblotter/.local/share/nvim/site/pack/packer/start/flutter-tools.nvim",
     url = "https://github.com/akinsho/flutter-tools.nvim"
   },
+  ["indent-blankline.nvim"] = {
+    loaded = true,
+    path = "/home/harryblotter/.local/share/nvim/site/pack/packer/start/indent-blankline.nvim",
+    url = "https://github.com/lukas-reineke/indent-blankline.nvim"
+  },
   ["nvim-cmp"] = {
     loaded = true,
     path = "/home/harryblotter/.local/share/nvim/site/pack/packer/start/nvim-cmp",

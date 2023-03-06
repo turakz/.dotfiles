@@ -1,9 +1,6 @@
--- local modules
+require('fractals/plugins')
 require('fractals/autocmds')
 require('fractals/lsp')
-require('fractals/mappings')
+require('fractals/editor')
 require('fractals/options')
-require('fractals/plugins')
 require('fractals/colorschemeinit')
-
-

@@ -5,6 +5,8 @@ vim.cmd [[packadd packer.nvim]]
 return require('packer').startup(function(use)
   -- packer
   use 'wbthomason/packer.nvim'
+  -- show indentation structure
+  use 'lukas-reineke/indent-blankline.nvim'
   -- lsp
   use 'neovim/nvim-lspconfig'
   -- completion engine

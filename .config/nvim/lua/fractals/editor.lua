@@ -1,3 +1,8 @@
+vim.opt.listchars = {
+  space = '⋅',
+  eol = '↵'
+}
+
 -----------------------------------------------------------
 -- Define keymaps of Neovim and installed plugins.
 -----------------------------------------------------------
@@ -64,4 +69,3 @@ map('n', '<leader>n', ':NvimTreeFindFile<CR>')      -- search file
 
 -- Tagbar
 map('n', '<leader>z', ':TagbarToggle<CR>')          -- open/close
-
