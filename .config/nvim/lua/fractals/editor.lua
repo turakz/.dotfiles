@@ -3,6 +3,8 @@ vim.opt.listchars = {
   eol = '↵'
 }
 
+vim.opt.relativenumber = true;
+
 -----------------------------------------------------------
 -- Define keymaps of Neovim and installed plugins.
 -----------------------------------------------------------
