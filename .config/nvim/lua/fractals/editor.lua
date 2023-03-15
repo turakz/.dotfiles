@@ -10,7 +10,7 @@ vim.opt.relativenumber = true;
 -----------------------------------------------------------
 
 local function map(mode, lhs, rhs, opts)
-  local options = { noremap=true, silent=true }
+  local options = { noremap = true, silent = true }
   if opts then
     options = vim.tbl_extend('force', options, opts)
   end
@@ -60,14 +60,36 @@ map('n', '<leader>q', ':qa!<CR>')
 -- Applications and Plugins shortcuts
 -----------------------------------------------------------
 
--- Terminal mappings
-map('n', '<C-t>', ':Term<CR>', { noremap = true })  -- open
-map('t', '<Esc>', '<C-\\><C-n>')                    -- exit
+-- terminal mappings
+map('n', '<C-t>', ':Term<CR>', { noremap = true }) -- open
+map('t', '<Esc>', '<C-\\><C-n>')                   -- exit
 
--- NvimTree
-map('n', '<C-n>', ':NvimTreeToggle<CR>')            -- open/close
-map('n', '<leader>f', ':NvimTreeRefresh<CR>')       -- refresh
-map('n', '<leader>n', ':NvimTreeFindFile<CR>')      -- search file
+-- nvimtree
+map('n', '<space>fet', ':NvimTreeToggle<CR>')    -- open/close and then focus on tree
+map('n', '<space>fe', ':NvimTreeFocus<CR>')    -- open/close and then focus on tree
+map('n', '<space>fr', ':NvimTreeRefresh<CR>')  -- refresh
+map('n', '<leader>n', ':NvimTreeFindFile<CR>') -- search file
+map('n', '<space>fc', ':NvimTreeCollapse<CR>') -- collapse recursively
 
--- Tagbar
-map('n', '<leader>z', ':TagbarToggle<CR>')          -- open/close
+-- tagbar
+map('n', '<leader>z', ':TagbarToggle<CR>') -- open/close
+
+-- telescope filebrowser/finding mappings
+local builtin = require('telescope.builtin')
+--vim.keymap.set('n', '<leader>ff', builtin.find_files, {})
+--vim.api.nvim_set_keymap(
+  --"n",
+  --"<space>ff",
+  --":Telescope file_browser<CR>",
+  --{ noremap = true }
+--)
+vim.keymap.set('n', '<leader>fg', builtin.live_grep, {})
+vim.keymap.set('n', '<leader>fb', builtin.buffers, {})
+vim.keymap.set('n', '<leader>fh', builtin.help_tags, {})
+-- open file_browser with the path of the current buffer
+vim.api.nvim_set_keymap(
+  "n",
+  "<leader>ff",
+  ":Telescope file_browser path=%:p:h select_buffer=true<CR>",
+  { noremap = true }
+)

@@ -129,6 +129,8 @@ export NVM_DIR="$HOME/.nvm"
 # set default editor (LunarVim)
 # export EDITOR='lvim'
 
-alias luamake=/home/harryblotter/zdev/tools/lua-language-server/3rd/luamake/luamake
+export EDITOR='nvim'
+
+#alias luamake=/home/harryblotter/zdev/tools/lua-language-server/3rd/luamake/luamake
 
 export PATH="$HOME/tools/lua-language-server/bin:$PATH"

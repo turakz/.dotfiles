@@ -36,6 +36,7 @@ SOFTWARE_PACKAGES=" \
   tmux \
   ripgrep \
   xz-utils \
+  fd-find \
 
   vim \ # depend on repository adds
   neovim \
