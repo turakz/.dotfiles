@@ -41,7 +41,8 @@ return require('packer').startup(function(use)
     end,
   }
   -- colorschemes
-  use 'navarasu/onedark.nvim'
+  --use 'navarasu/onedark.nvim'
+  use 'folke/tokyonight.nvim'
   -- flutter/dart support
   use {'akinsho/flutter-tools.nvim', requires = 'nvim-lua/plenary.nvim'}
 
