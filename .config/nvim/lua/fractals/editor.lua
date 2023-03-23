@@ -67,29 +67,30 @@ map('t', '<Esc>', '<C-\\><C-n>')                   -- exit
 -- nvimtree
 map('n', '<space>fet', ':NvimTreeToggle<CR>')    -- open/close and then focus on tree
 map('n', '<space>fe', ':NvimTreeFocus<CR>')    -- open/close and then focus on tree
-map('n', '<space>fr', ':NvimTreeRefresh<CR>')  -- refresh
-map('n', '<leader>n', ':NvimTreeFindFile<CR>') -- search file
-map('n', '<space>fc', ':NvimTreeCollapse<CR>') -- collapse recursively
+map('n', '<space>fer', ':NvimTreeRefresh<CR>')  -- refresh
+map('n', '<space>fef', ':NvimTreeFindFile<CR>') -- search file
+map('n', '<space>fec', ':NvimTreeCollapse<CR>') -- collapse recursively
 
 -- tagbar
 map('n', '<leader>z', ':TagbarToggle<CR>') -- open/close
 
 -- telescope filebrowser/finding mappings
 local builtin = require('telescope.builtin')
---vim.keymap.set('n', '<leader>ff', builtin.find_files, {})
-vim.api.nvim_set_keymap(
-  "n",
-  "<space>ff",
-  ":Telescope file_browser<CR>",
-  { noremap = true }
-)
+vim.keymap.set('n', '<leader>ff', builtin.find_files, {})
 vim.keymap.set('n', '<leader>fg', builtin.live_grep, {})
 vim.keymap.set('n', '<leader>fb', builtin.buffers, {})
 vim.keymap.set('n', '<leader>fh', builtin.help_tags, {})
+-- file_browser
+vim.api.nvim_set_keymap(
+  "n",
+  "<space>fb",
+  ":Telescope file_browser<CR>",
+  { noremap = true }
+)
 -- open file_browser with the path of the current buffer
 vim.api.nvim_set_keymap(
   "n",
-  "<leader>fp",
+  "<space>fbp",
   ":Telescope file_browser path=%:p:h select_buffer=true<CR>",
   { noremap = true }
 )

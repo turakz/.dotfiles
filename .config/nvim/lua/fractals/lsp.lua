@@ -96,6 +96,7 @@ cmp.setup.cmdline(':', {
 local lsp_flags = {
   -- This is the default in Nvim 0.7+
   debounce_text_changes = 150,
+  autostart = true,
 }
 
 -- c family support

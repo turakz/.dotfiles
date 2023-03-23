@@ -37,6 +37,9 @@ SOFTWARE_PACKAGES=" \
   ripgrep \
   xz-utils \
   fd-find \
+  libc6-dev-i386 \
+  lib32z1 \
+  openjdk-8-jdk \
 
   vim \ # depend on repository adds
   neovim \
