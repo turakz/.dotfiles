@@ -44,8 +44,13 @@ return require('packer').startup(function(use)
   --use 'navarasu/onedark.nvim'
   use 'folke/tokyonight.nvim'
   -- flutter/dart support
-  use {'akinsho/flutter-tools.nvim', requires = 'nvim-lua/plenary.nvim'}
-
+  use {
+    'akinsho/flutter-tools.nvim',
+    requires = {
+      'nvim-lua/plenary.nvim',
+      'stevearc/dressing.nvim', -- optional for vim.ui.select
+    },
+  }
 
 
 

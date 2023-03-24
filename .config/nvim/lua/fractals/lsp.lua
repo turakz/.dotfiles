@@ -118,8 +118,9 @@ require('lspconfig')['pyright'].setup{
   capabilities = require('cmp_nvim_lsp').default_capabilities(),
 }
 -- flutter/dart support
-require('lspconfig')['flutter-tools'].setup{
-  on_attach = on_attach,
-  flags = lsp_flags,
-  capabilities = require('cmp_nvim_lsp').default_capabilities(),
-}
+require('flutter-tools').setup {} -- use defaults
+--require('lspconfig')['flutter-tools'].setup{
+  --on_attach = on_attach,
+  --flags = lsp_flags,
+  --capabilities = require('cmp_nvim_lsp').default_capabilities(),
+--}

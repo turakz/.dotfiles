@@ -34,7 +34,7 @@ vim.g.mapleader = ','
 map('n', '<leader>c', ':nohl<CR>')
 
 -- Toggle auto-indenting for code paste
-map('n', '<F2>', ':set invpaste paste?<CR>')
+map('n', '<F11>', ':set invpaste paste?<CR>')
 vim.opt.pastetoggle = '<F12>'
 
 -- Change split orientation
@@ -65,21 +65,21 @@ map('n', '<C-t>', ':Term<CR>', { noremap = true }) -- open
 map('t', '<Esc>', '<C-\\><C-n>')                   -- exit
 
 -- nvimtree
-map('n', '<space>fet', ':NvimTreeToggle<CR>')    -- open/close and then focus on tree
-map('n', '<space>fe', ':NvimTreeFocus<CR>')    -- open/close and then focus on tree
-map('n', '<space>fer', ':NvimTreeRefresh<CR>')  -- refresh
-map('n', '<space>fef', ':NvimTreeFindFile<CR>') -- search file
-map('n', '<space>fec', ':NvimTreeCollapse<CR>') -- collapse recursively
+map('n', '<F1>', ':NvimTreeFocus<CR>')    -- open/close and then focus on tree
+map('n', '<F2>', ':NvimTreeToggle<CR>')    -- open/close and then focus on tree
+map('n', '<F3>', ':NvimTreeCollapse<CR>') -- collapse recursively
+map('n', '<F4>', ':NvimTreeFindFile<CR>') -- search file
+map('n', '<F5>', ':NvimTreeRefresh<CR>')  -- refresh
 
 -- tagbar
 map('n', '<leader>z', ':TagbarToggle<CR>') -- open/close
 
 -- telescope filebrowser/finding mappings
-local builtin = require('telescope.builtin')
-vim.keymap.set('n', '<leader>ff', builtin.find_files, {})
-vim.keymap.set('n', '<leader>fg', builtin.live_grep, {})
-vim.keymap.set('n', '<leader>fb', builtin.buffers, {})
-vim.keymap.set('n', '<leader>fh', builtin.help_tags, {})
+local telescope_builtin = require('telescope.builtin')
+vim.keymap.set('n', '<leader>ff', telescope_builtin.find_files, {})
+vim.keymap.set('n', '<leader>fg', telescope_builtin.live_grep, {})
+vim.keymap.set('n', '<leader>fb', telescope_builtin.buffers, {})
+vim.keymap.set('n', '<leader>fh', telescope_builtin.help_tags, {})
 -- file_browser
 vim.api.nvim_set_keymap(
   "n",
