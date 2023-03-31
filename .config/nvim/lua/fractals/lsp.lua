@@ -93,6 +93,8 @@ cmp.setup.cmdline(':', {
   })
 })
 
+--vim.lsp.set_log_level("debug")
+
 local lsp_flags = {
   -- This is the default in Nvim 0.7+
   debounce_text_changes = 150,
@@ -100,27 +102,23 @@ local lsp_flags = {
 }
 
 -- c family support
-require('lspconfig')['clangd'].setup{
+require('lspconfig')['clangd'].setup {
   on_attach = on_attach,
   flags = lsp_flags,
   capabilities = require('cmp_nvim_lsp').default_capabilities(),
 }
 -- lua support
-require('lspconfig')['lua_ls'].setup{
+require('lspconfig')['lua_ls'].setup {
   on_attach = on_attach,
   flags = lsp_flags,
   capabilities = require('cmp_nvim_lsp').default_capabilities(),
 }
 -- python support
-require('lspconfig')['pyright'].setup{
+require('lspconfig')['pyright'].setup {
   on_attach = on_attach,
   flags = lsp_flags,
   capabilities = require('cmp_nvim_lsp').default_capabilities(),
 }
--- flutter/dart support
-require('flutter-tools').setup {} -- use defaults
---require('lspconfig')['flutter-tools'].setup{
-  --on_attach = on_attach,
-  --flags = lsp_flags,
-  --capabilities = require('cmp_nvim_lsp').default_capabilities(),
---}
+
+-- flutter support
+require('flutter-tools').setup {}

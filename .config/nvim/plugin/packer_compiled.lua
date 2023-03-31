@@ -94,6 +94,11 @@ _G.packer_plugins = {
     path = "/home/harryblotter/.local/share/nvim/site/pack/packer/start/cmp-path",
     url = "https://github.com/hrsh7th/cmp-path"
   },
+  ["dressing.nvim"] = {
+    loaded = true,
+    path = "/home/harryblotter/.local/share/nvim/site/pack/packer/start/dressing.nvim",
+    url = "https://github.com/stevearc/dressing.nvim"
+  },
   ["flutter-tools.nvim"] = {
     loaded = true,
     path = "/home/harryblotter/.local/share/nvim/site/pack/packer/start/flutter-tools.nvim",
