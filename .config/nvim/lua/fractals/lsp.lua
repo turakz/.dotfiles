@@ -121,4 +121,7 @@ require('lspconfig')['pyright'].setup {
 }
 
 -- flutter support
-require('flutter-tools').setup {}
+require('flutter-tools').setup {
+  on_attach = on_attach,
+  capabilities = require('cmp_nvim_lsp').default_capabilities(),
+}

@@ -1,7 +1,9 @@
-vim.opt.listchars = {
-  space = '⋅',
-  eol = '↵'
-}
+--vim.opt.listchars = {
+--  space = '⋅',
+--  eol = '↵'
+--}
+vim.opt.listchars:append({space = '⋅'})
+vim.opt.listchars:append({eol = '↵'})
 
 vim.opt.relativenumber = true;
 
