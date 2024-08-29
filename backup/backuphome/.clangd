@@ -1,0 +1,18 @@
+CompileFlags:
+  Add:
+    -Wall
+    -02
+    -Werror
+    -Wextra
+    -Wundef
+    -Wpointer-arith
+    -Wcast-align
+    -Wstrict-prototypes
+    -Wwrite-strings
+    -Waggregate-return
+    -Wcast-qual
+    -Wswitch-default
+    -Wswitch-enum
+    -Wconversion
+    -Wunreachable-code
+    -std=c++17

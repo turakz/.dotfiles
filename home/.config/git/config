@@ -1,9 +1,0 @@
-[user]
-  username = turakz
-  email = zachary.turak@gmail.com
-
-[init]
-  defaultBranch = main
-
-[core]
-  editor = nvim
