@@ -1,6 +1,0 @@
-!.bashrc
-!.clangd
-!.config/dev_setup.sh
-!.config/nvim/*
-!.gitignore
-!.tmux.conf
