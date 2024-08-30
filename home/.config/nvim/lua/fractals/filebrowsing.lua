@@ -1,10 +1,11 @@
+-- nvim-tree: https://github.com/nvim-tree/nvim-tree.lua
 -- nvim tree defaults
 vim.g.loaded_netrw = 1
 vim.g.loaded_netrwPlugin = 1
 vim.opt.termguicolors = true
 require("nvim-tree").setup()
 
--- telescope cfg
+-- telescope: https://github.com/nvim-telescope/telescope.nvim
 local telescope = require("telescope")
 telescope.setup({
   -- integrate extensions

@@ -1,4 +1,4 @@
--- debugging
+-- nvimdap: https://github.com/mfussenegger/nvim-dap
 local dap = require("dap")
 dap.adapters.gdb = {
   type = "executable",
