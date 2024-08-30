@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # software support
 echo "creating fractals::environment::\"updates_to_path_var_req_for_dev.txt\" file for tracking PATH var appends..."
 touch ~/updates_to_path_var_req_for_dev_setup.txt
@@ -25,6 +26,7 @@ echo "installing fractals::environment::upgrading to ubuntu latest..."
 sudo apt upgrade -y
 
 SOFTWARE_PACKAGES=" \
+  bash-completion \
   curl \
   build-essential \
   cmake \
@@ -41,7 +43,7 @@ SOFTWARE_PACKAGES=" \
   lib32z1 \
   openjdk-8-jdk \
 
-  vim \ # depend on repository adds
+  vim \
   neovim \
   firefox \
   "
@@ -76,18 +78,18 @@ python3 -m pip install --upgrade pip
 
 # flutter/dart
 ##############
-echo "installing fractals::environment::special_cases... flutter/dart-sdk"
-sudo snap install flutter --classic
-echo "running fractals::environment::special_cases... flutter init"
-flutter sdk-path
-echo "running fractals::environment::special_cases... flutter doctor"
-flutter doctor
+#echo "installing fractals::environment::special_cases... flutter/dart-sdk"
+#sudo snap install flutter --classic
+#echo "running fractals::environment::special_cases... flutter init"
+#flutter sdk-path
+#echo "running fractals::environment::special_cases... flutter doctor"
+#flutter doctor
 
 # nodejs
 ########
-echo "installing fractals::environment::special_cases... nodejs toolchain"
-curl -fsSL https://deb.nodesource.com/setup_19.x | sudo -E bash - &&\
-sudo apt install -f -y nodejs
+#echo "installing fractals::environment::special_cases... nodejs toolchain"
+#curl -fsSL https://deb.nodesource.com/setup_19.x | sudo -E bash - &&\
+#sudo apt install -f -y nodejs
 
 # rust
 ######
