@@ -75,8 +75,8 @@ return require("packer").startup(function(use)
   }
 
   -- colorschemes
-  use "navarasu/onedark.nvim"
-  --use "folke/tokyonight.nvim"
+  -- use "navarasu/onedark.nvim"
+  use "folke/tokyonight.nvim"
 
   -- flutter/dart support
   use {
