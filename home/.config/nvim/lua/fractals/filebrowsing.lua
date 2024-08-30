@@ -4,8 +4,10 @@ vim.g.loaded_netrwPlugin = 1
 vim.opt.termguicolors = true
 require("nvim-tree").setup()
 
--- telescope defaults
-require('telescope').setup {
+-- telescope cfg
+local telescope = require("telescope")
+telescope.setup({
+  -- integrate extensions
   extensions = {
     fzf = {
       fuzzy = true,                   -- false will only do exact matching
@@ -15,7 +17,8 @@ require('telescope').setup {
       -- the default case_mode is "smart_case"
     }
   }
-}
+})
+
 -- must be called after setup
 require('telescope').load_extension('fzf')
 require('telescope').load_extension('file_browser')

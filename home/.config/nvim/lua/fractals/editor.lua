@@ -1,11 +1,11 @@
 -- current <leader>
-vim.g.mapleader = ','
+vim.g.mapleader = ' '
 
 ------------------------------------------------------------
 -- Whitespace, Newlines, and Line Numbers
 ------------------------------------------------------------
-vim.opt.listchars:append({space = '⋅'})
-vim.opt.listchars:append({eol = '↵'})
+vim.opt.listchars:append({ space = '⋅' })
+vim.opt.listchars:append({ eol = '↵' })
 vim.opt.relativenumber = true;
 
 -----------------------------------------------------------
@@ -66,11 +66,14 @@ map('n', '<C-t>', ':Term<CR>', { noremap = true }) -- open
 map('t', '<Esc>', '<C-\\><C-n>')                   -- exit
 
 -- nvimtree
-map('n', '<F1>', ':NvimTreeFocus<CR>')    -- open/close and then focus on tree
-map('n', '<F2>', ':NvimTreeToggle<CR>')    -- open/close and then focus on tree
-map('n', '<F3>', ':NvimTreeCollapse<CR>') -- collapse recursively
-map('n', '<F4>', ':NvimTreeFindFile<CR>') -- search file
-map('n', '<F5>', ':NvimTreeRefresh<CR>')  -- refresh
+map('n', '<F1>', ':NvimTreeFocus<CR>')         -- open/close and then focus on tree
+map('n', '<F2>', ':NvimTreeToggle<CR>')        -- open/close and then focus on tree
+map('n', '<F3>', ':NvimTreeCollapse<CR>')      -- collapse recursively
+map('n', '<F4>', ':NvimTreeFindFile<CR>')      -- search file
+map('n', '<F5>', ':NvimTreeRefresh<CR>')       -- refresh
+-- with leader
+map('n', '<leader>e', ':NvimTreeToggle<CR>')   -- open/close and then focus on tree
+map('n', '<leader>c', ':NvimTreeCollapse<CR>') -- collapse recursively
 
 -- tagbar
 map('n', '<leader>z', ':TagbarToggle<CR>') -- open/close
@@ -78,21 +81,23 @@ map('n', '<leader>z', ':TagbarToggle<CR>') -- open/close
 -- telescope filebrowser/finding mappings
 local telescope_builtin = require('telescope.builtin')
 vim.keymap.set('n', '<leader>ff', telescope_builtin.find_files, {})
-vim.keymap.set('n', '<leader>fg', telescope_builtin.live_grep, {})
+vim.keymap.set('n', '<leader>ffg', telescope_builtin.git_files, {})
+vim.keymap.set('n', '<leader>lg', telescope_builtin.live_grep, {})
+vim.keymap.set('n', '<leader>gd', telescope_builtin.lsp_definitions, {})
 -- vim.keymap.set('n', '<leader>fb', telescope_builtin.buffers, {})
--- vim.keymap.set('n', '<leader>fh', telescope_builtin.help_tags, {})
+vim.keymap.set('n', '<leader>fh', telescope_builtin.help_tags, {})
 
 -- file_browser
 vim.api.nvim_set_keymap(
   "n",
-  "<space>fb",
+  "<leader>fb",
   ":Telescope file_browser<CR>",
   { noremap = true }
 )
 -- open file_browser with the path of the current buffer
 vim.api.nvim_set_keymap(
   "n",
-  "<space>fbp",
+  "<leader>fbp",
   ":Telescope file_browser path=%:p:h select_buffer=true<CR>",
   { noremap = true }
 )
