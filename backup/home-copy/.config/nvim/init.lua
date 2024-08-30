@@ -5,13 +5,15 @@
   -> packer must be re-compiled, :PackerSync
   -> .dotfiles repo symlinks need re-farmed so that the new module path is picked up: ./stow_home.sh
 
-]]--
+]] --
 require("fractals/plugins")
 require("fractals/options")
 require("fractals/autocmds")
-require("fractals/lsp")
 require("fractals/colorscheme")
-require("fractals/editor")
+require("fractals/treesitter")
 require("fractals/filebrowsing")
+require("fractals/lsp")
+require("fractals/clangd_exts")
+require("fractals/editor")
 require("fractals/nvimdap")
-
+require("fractals/nvimlualine")
