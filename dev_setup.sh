@@ -154,4 +154,5 @@ cd lua-language-server
 bash make.sh
 echo -e "${ORANGE}please append the following to PATH in.bashrc${NOFMT}: ${CYAN}/home/tools/lua-language-server/bin:${NOFMT}"
 echo -e "fractals::environment::installation complete!"
-echo -e "${ORANGE}\treminder: when launching nvim, don't forget to :PackerUpdate${NOFMT}"
+echo -e "${ORANGE}\treminder: farm config file symlinks for home directory${NOFMT}"
+echo -e "${ORANGE}\treminder: open neovim and run :PackerSync${NOFMT}"
