@@ -27,8 +27,6 @@ return require('packer').startup(function(use)
   use 'hrsh7th/nvim-cmp'
   use 'hrsh7th/vim-vsnip'
   use 'hrsh7th/vim-vsnip-integ'
-  -- python semantic highlighting
-  use {'numirias/semshi', run = ':UpdateRemotePlugins', ft = 'python'}
   -- nvim tree: file explorer/project explorer
   use {
     'nvim-tree/nvim-tree.lua',
