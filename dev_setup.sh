@@ -1,54 +1,94 @@
 #!/usr/bin/env bash
-# software support
-echo "creating fractals::environment::\"updates_to_path_var_req_for_dev.txt\" file for tracking PATH var appends..."
-touch ~/updates_to_path_var_req_for_dev_setup.txt
+
+# TODO(fractals): make into a function
+if [[ -t 2 ]] && [[ -z ${NO_COLOR-} ]] && [[ ${TERM-} != "dumb" ]]; then
+  NOFMT='\033[0m'
+  RED='\033[0;31m'
+  ORANGE='\033[0;33m'
+  YELLOW='\033[1;33m'
+  GREEN='\033[0;32m'
+  BLUE='\033[0;34m'
+  PURPLE='\033[0;35m'
+  CYAN='\033[0;36m'
+else
+  export NOFMT=''
+  export RED=''
+  export ORANGE=''
+  export YELLOW=''
+  export GREEN=''
+  export BLUE=''
+  export PURPLE=''
+  export CYAN=''
+fi
 
 # add firefox repository for latest/manage as deb pkg
-echo "installing fractals::environment::adding apt repository... mozillateam (firefox)"
-sudo add-apt-repository ppa:mozillateam/ppa
-echo '
-Package: *
-Pin: release o=LP-PPA-mozillateam
-Pin-Priority: 1001
-' | sudo tee /etc/apt/preferences.d/mozilla-firefox
-echo "enable mozillateam automatic updates... firefox"
-echo 'Unattended-Upgrade::Allowed-Origins:: "LP-PPA-mozillateam:${distro_codename}";' | sudo tee /etc/apt/apt.conf.d/51unattended-upgrades-firefox
-
-# add neovim repository for latest/manage as deb pkg
-# sudo add-apt-repository ppa:neovim-ppa/stable
-echo "installing fractals::environment::adding apt repository... neovim"
-sudo add-apt-repository ppa:neovim-ppa/unstable
+#echo -e "installing fractals::environment::adding apt repository... mozillateam (firefox)"
+#sudo add-apt-repository ppa:mozillateam/ppa
+#echo '
+#Package: *
+#Pin: release o=LP-PPA-mozillateam
+#Pin-Priority: 1001
+#' | sudo tee /etc/apt/preferences.d/mozilla-firefox
+#echo -e "enable mozillateam automatic updates... firefox"
+#echo 'Unattended-Upgrade::Allowed-Origins:: "LP-PPA-mozillateam:${distro_codename}";' | sudo tee /etc/apt/apt.conf.d/51unattended-upgrades-firefox
 
 # install minimum dev dependencies
-echo "installing fractals::environment::updating packages..."
+echo -e "installing fractals::environment::${CYAN}updating packages${NOFMT}..."
 sudo apt update -y
-echo "installing fractals::environment::upgrading to ubuntu latest..."
+echo -e "installing fractals::environment::${CYAN}upgrading to ubuntu latest...${NOFMT}"
 sudo apt upgrade -y
 
+# removed:
+  # libc6-dev-i386 \
+  # lib32z1 \
+
 SOFTWARE_PACKAGES=" \
-  bash-completion \
   curl \
+
+  bash-completion \
   build-essential \
-  cmake \
-  ninja-build \
+  ccache \
+  clang-format \
+  clang-tidy \
   clang \
   clangd \
-  gdb \
-  git \
-  tmux \
-  ripgrep \
-  xz-utils \
+  cmake \
+  cmake-doc \
   fd-find \
-  libc6-dev-i386 \
-  lib32z1 \
-  openjdk-8-jdk \
-
-  vim \
-  neovim \
   firefox \
+  gdb \
+  gdb-multiarch \
+  g++ \
+  git \
+  git-lfs \
+  htop \
+  lld \
+  lldb \
+  llvm \
+  libc++-dev \
+  mold \
+  neovim \
+  ninja-build \
+  openjdk-8-jdk \
+  ripgrep \
+  shfmt \
+  software-properties-common \
+  stow \
+  tig \
+  tmux \
+  tree \
+  unzip \
+  valgrind \
+  vim \
+  vim-gui-common \
+  wget \
+  xclip \
+  xsel \
+  zip \
+  xz-utils \
   "
 
-echo "installing fractals::environment::SOFTWARE_PACKAGES $SOFTWARE_PACKAGES"
+echo -e "installing fractals::environment::${CYAN}SOFTWARE_PACKAGES${NOFMT}"
 sudo apt install -f -y $SOFTWARE_PACKAGES
 
 # language support
@@ -60,12 +100,16 @@ LANGUAGE_PACKAGES=" \
  lua5.3 \
   "
 
-echo "installing fractals::environment::LANGUAGE_PACKAGES $LANGUAGE_PACKAGES"
+echo -e "installing fractals::environment::${CYAN}LANGUAGE_PACKAGES${NOFMT}"
 sudo apt install -f -y $LANGUAGE_PACKAGES
 
-echo "installing fractals::environment::config directory... neovim"
+# add neovim repository for latest/manage as deb pkg
+echo -e "installing fractals::environment::adding apt repository... ${CYAN}neovim${NOFMT}"
+sudo add-apt-repository ppa:neovim-ppa/unstable
+
+echo -e "installing fractals::environment::config directory... ${CYAN}neovim${NOFMT}"
 nvim --headless -c 'call mkdir(stdpath("config"), "p") | exe "edit" stdpath("config") . "/init.lua" | write | quit'
-echo "installing fractals::environment::plugins manager... neovim"
+echo -e "installing fractals::environment::plugins manager... ${CYAN}neovim${NOFMT}"
 git clone --depth 1 https://github.com/wbthomason/packer.nvim\
  ~/.local/share/nvim/site/pack/packer/start/packer.nvim
 
@@ -73,36 +117,41 @@ git clone --depth 1 https://github.com/wbthomason/packer.nvim\
 
 # python
 ########
-echo "upgrading fractals::environment::special_cases... python3-pip"
+echo -e "upgrading fractals::environment::special_cases... ${CYAN}python3-pip${NOFMT}"
 python3 -m pip install --upgrade pip
 
 # flutter/dart
 ##############
-#echo "installing fractals::environment::special_cases... flutter/dart-sdk"
+#echo -e "installing fractals::environment::special_cases... flutter/dart-sdk"
 #sudo snap install flutter --classic
-#echo "running fractals::environment::special_cases... flutter init"
+#echo -e "running fractals::environment::special_cases... flutter init"
 #flutter sdk-path
-#echo "running fractals::environment::special_cases... flutter doctor"
+#echo -e "running fractals::environment::special_cases... flutter doctor"
 #flutter doctor
 
 # nodejs
 ########
-#echo "installing fractals::environment::special_cases... nodejs toolchain"
+#echo -e "installing fractals::environment::special_cases... nodejs toolchain"
 #curl -fsSL https://deb.nodesource.com/setup_19.x | sudo -E bash - &&\
 #sudo apt install -f -y nodejs
 
 # rust
 ######
-echo "installing fractals::environment::special_cases... rust toolchain"
+echo -e "installing fractals::environment::special_cases... ${CYAN}rust toolchain${NOFMT}"
 sudo curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 sudo rustup update
 
 # lua
 #####
-echo "installing fractals::environment::special_cases... lua-language-server"
-cd $HOME && mkdir tools && cd tools
+echo -e "installing fractals::environment::special_cases... ${CYAN}lua-language-server${NOFMT}"
+cd $HOME
+mkdir tools
+echo -e "making ${CYAN}/home/tools/${NOFMT}"
+cd tools
+pwd
 git clone --depth 1 https://github.com/LuaLS/lua-language-server
-cd lua-language-server && bash make.sh
-echo "tracking update to fractals::environment::PATH: $PATH... lua-language-server path"
-cat "$HOME/tools/lua-language-server/bin:" >> updates_to_path_var_req_for_dev_setup
-echo "added fractals::environment::PATH append to \"updates_to_path_var_req_for_dev_setup.txt\""
+cd lua-language-server
+bash make.sh
+echo -e "${ORANGE}please append the following to PATH in.bashrc${NOFMT}: ${CYAN}/home/tools/lua-language-server/bin:${NOFMT}"
+echo -e "fractals::environment::installation complete!"
+echo -e "${ORANGE}\treminder: when launching nvim, don't forget to :PackerUpdate${NOFMT}"

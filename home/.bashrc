@@ -134,5 +134,4 @@ export EDITOR='nvim'
 #alias luamake=/home/harryblotter/zdev/tools/lua-language-server/3rd/luamake/luamake
 
 export PATH="$HOME/tools/lua-language-server/bin:$PATH"
-
-#export PATH="$HOME/tools/android_sdk/android-studio-2022.1.1.21-linux/android-studio/jbr/bin:$PATH"
+# export PATH="$HOME/tools/android_sdk/android-studio-2022.1.1.21-linux/android-studio/jbr/bin:$PATH"

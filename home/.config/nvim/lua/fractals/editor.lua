@@ -1,10 +1,11 @@
---vim.opt.listchars = {
---  space = '⋅',
---  eol = '↵'
---}
+-- current <leader>
+vim.g.mapleader = ','
+
+------------------------------------------------------------
+-- Whitespace, Newlines, and Line Numbers
+------------------------------------------------------------
 vim.opt.listchars:append({space = '⋅'})
 vim.opt.listchars:append({eol = '↵'})
-
 vim.opt.relativenumber = true;
 
 -----------------------------------------------------------
@@ -19,8 +20,6 @@ local function map(mode, lhs, rhs, opts)
   vim.api.nvim_set_keymap(mode, lhs, rhs, options)
 end
 
--- Change leader to a comma
-vim.g.mapleader = ','
 
 -----------------------------------------------------------
 -- Neovim shortcuts
@@ -80,8 +79,9 @@ map('n', '<leader>z', ':TagbarToggle<CR>') -- open/close
 local telescope_builtin = require('telescope.builtin')
 vim.keymap.set('n', '<leader>ff', telescope_builtin.find_files, {})
 vim.keymap.set('n', '<leader>fg', telescope_builtin.live_grep, {})
-vim.keymap.set('n', '<leader>fb', telescope_builtin.buffers, {})
-vim.keymap.set('n', '<leader>fh', telescope_builtin.help_tags, {})
+-- vim.keymap.set('n', '<leader>fb', telescope_builtin.buffers, {})
+-- vim.keymap.set('n', '<leader>fh', telescope_builtin.help_tags, {})
+
 -- file_browser
 vim.api.nvim_set_keymap(
   "n",
