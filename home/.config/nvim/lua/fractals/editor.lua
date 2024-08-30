@@ -37,7 +37,7 @@ map('n', '<leader>c', ':nohl<CR>')
 
 -- Toggle auto-indenting for code paste
 map('n', '<F11>', ':set invpaste paste?<CR>')
-vim.opt.pastetoggle = '<F12>'
+-- this setting is apparently deprecated (?): vim.opt.pastetoggle = '<F12>'
 
 -- Change split orientation
 map('n', '<leader>tk', '<C-w>t<C-w>K') -- change vertical to horizontal
