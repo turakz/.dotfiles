@@ -119,6 +119,8 @@ git clone --depth 1 https://github.com/wbthomason/packer.nvim\
 ########
 echo -e "upgrading fractals::environment::special_cases... ${CYAN}python3-pip${NOFMT}"
 python3 -m pip install --upgrade pip
+sudo snap install pyright --classic
+pip3 install pynvim --upgrade
 
 # flutter/dart
 ##############
