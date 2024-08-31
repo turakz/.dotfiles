@@ -6,7 +6,10 @@ vim.g.mapleader = ' '
 ------------------------------------------------------------
 vim.opt.listchars:append({ space = '⋅' })
 vim.opt.listchars:append({ eol = '↵' })
-vim.opt.relativenumber = true;
+vim.opt.relativenumber = true
+vim.opt.shiftwidth = 2
+vim.opt.tabstop = 2
+vim.opt.spell = false
 
 -----------------------------------------------------------
 -- Define keymaps of Neovim and installed plugins.
