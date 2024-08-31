@@ -158,6 +158,7 @@ git clone --depth 1 https://github.com/wbthomason/packer.nvim\
 ######
 echo -e "installing fractals::environment::special_cases... ${CYAN}rust toolchain${NOFMT}"
 sudo curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+source $HOME/.cargo/env
 sudo rustup update
 
 # end
