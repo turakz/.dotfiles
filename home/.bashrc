@@ -135,4 +135,7 @@ export PATH="/usr/local/bin:$PATH"
 
 eval "$(starship init bash)"
 
+# prompt
 export STARSHIP_CONFIG="${HOME}/.dotfiles/home/.config/starship/starship.toml"
+# autocompeltion
+source ~/.local/share/blesh/ble.sh
