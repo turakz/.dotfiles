@@ -93,15 +93,41 @@ sudo apt install -f -y $SOFTWARE_PACKAGES
 
 # language support
 LANGUAGE_PACKAGES=" \
- python3 \
- python3-dev \
- python3-venv \
- python3-pip \
- lua5.3 \
+  black \
+  lua5.3 \
+  pipx \
+  ptpython \
+  python-is-python3 \
+  python3 \
+  python3-dev \
+  python3-hatch-requirements.txt \
+  python3-hatch-vcs \
+  python3-hatchling \
+  python3-mypy \
+  python3-pip \
+  python3-venv \
   "
 
 echo -e "installing fractals::environment::${CYAN}LANGUAGE_PACKAGES${NOFMT}"
 sudo apt install -f -y $LANGUAGE_PACKAGES
+
+echo -e "upgrading fractals::environment::special_cases... ${CYAN}python3-pip${NOFMT}"
+python3 -m pip install --upgrade pip
+sudo snap install pyright --classic
+pip3 install pynvim --upgrade
+
+# lua
+#####
+echo -e "installing fractals::environment::special_cases... ${CYAN}lua-language-server${NOFMT}"
+cd $HOME
+mkdir tools
+echo -e "making ${CYAN}/home/tools/${NOFMT}"
+cd tools
+pwd
+git clone --depth 1 https://github.com/LuaLS/lua-language-server
+cd lua-language-server
+bash make.sh
+echo -e "${ORANGE}please append the following to PATH in.bashrc${NOFMT}: ${CYAN}/home/tools/lua-language-server/bin:${NOFMT}"
 
 # add neovim repository for latest/manage as deb pkg
 echo -e "installing fractals::environment::adding apt repository... ${CYAN}neovim${NOFMT}"
@@ -112,15 +138,6 @@ nvim --headless -c 'call mkdir(stdpath("config"), "p") | exe "edit" stdpath("con
 echo -e "installing fractals::environment::plugins manager... ${CYAN}neovim${NOFMT}"
 git clone --depth 1 https://github.com/wbthomason/packer.nvim\
  ~/.local/share/nvim/site/pack/packer/start/packer.nvim
-
-# special cases
-
-# python
-########
-echo -e "upgrading fractals::environment::special_cases... ${CYAN}python3-pip${NOFMT}"
-python3 -m pip install --upgrade pip
-sudo snap install pyright --classic
-pip3 install pynvim --upgrade
 
 # flutter/dart
 ##############
@@ -143,18 +160,7 @@ echo -e "installing fractals::environment::special_cases... ${CYAN}rust toolchai
 sudo curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 sudo rustup update
 
-# lua
-#####
-echo -e "installing fractals::environment::special_cases... ${CYAN}lua-language-server${NOFMT}"
-cd $HOME
-mkdir tools
-echo -e "making ${CYAN}/home/tools/${NOFMT}"
-cd tools
-pwd
-git clone --depth 1 https://github.com/LuaLS/lua-language-server
-cd lua-language-server
-bash make.sh
-echo -e "${ORANGE}please append the following to PATH in.bashrc${NOFMT}: ${CYAN}/home/tools/lua-language-server/bin:${NOFMT}"
+# end
 echo -e "fractals::environment::installation complete!"
 echo -e "${ORANGE}\treminder: farm config file symlinks for home directory${NOFMT}"
 echo -e "${ORANGE}\treminder: open neovim and run :PackerSync${NOFMT}"
