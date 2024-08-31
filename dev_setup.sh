@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# TODO(fractals): make into a function
+# TODO(fractals): make into a function/organize into utilities
 if [[ -t 2 ]] && [[ -z ${NO_COLOR-} ]] && [[ ${TERM-} != "dumb" ]]; then
   NOFMT='\033[0m'
   RED='\033[0;31m'
@@ -93,16 +93,11 @@ sudo apt install -f -y $SOFTWARE_PACKAGES
 
 # language support
 LANGUAGE_PACKAGES=" \
-  black \
   lua5.3 \
   pipx \
-  ptpython \
   python-is-python3 \
   python3 \
   python3-dev \
-  python3-hatch-requirements.txt \
-  python3-hatch-vcs \
-  python3-hatchling \
   python3-mypy \
   python3-pip \
   python3-venv \
@@ -115,6 +110,8 @@ echo -e "upgrading fractals::environment::special_cases... ${CYAN}python3-pip${N
 python3 -m pip install --upgrade pip
 sudo snap install pyright --classic
 pip3 install pynvim --upgrade
+pipx install black
+pipx install hatch
 
 # lua
 #####
