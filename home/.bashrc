@@ -136,5 +136,3 @@ export PATH="/usr/local/bin:$PATH"
 eval "$(starship init bash)"
 
 export STARSHIP_CONFIG="${HOME}/.dotfiles/home/.config/starship/starship.toml"
-
-alias tmux="TERM=screen-256color-bce tmux"
