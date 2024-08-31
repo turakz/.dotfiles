@@ -122,14 +122,14 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 . "$HOME/.cargo/env"
 
+export EDITOR='nvim'
 
 # append extra PATH dirs
 #export PATH="$HOME/.local/bin:$PATH"
 
-export EDITOR='nvim'
-
 alias luamake=/home/harryblotter/zdev/tools/lua-language-server/3rd/luamake/luamake
 export PATH="$HOME/tools/lua-language-server/bin:$PATH"
+
 export PATH="$HOME/tools/android_sdk/android-studio-2022.1.1.21-linux/android-studio/jbr/bin:$PATH"
 export PATH="/usr/local/bin:$PATH"
 
