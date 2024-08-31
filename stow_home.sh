@@ -26,5 +26,5 @@ stow home --no-folding      # Farm soft-links; create directories.
 if [ $? -eq 0 ]; then
   echo -e "fractals::environment ~/.config ${GREEN}symlinks farmed!${NOFMT}"
 else
-  echo "fractals::environment ~/.config ${ORANGE}farming symlinks failed, make sure there aren't already existing files${NOFMT}"
+  echo -e "fractals::environment ~/.config ${ORANGE}farming symlinks failed, make sure there aren't already existing files${NOFMT}"
 fi
