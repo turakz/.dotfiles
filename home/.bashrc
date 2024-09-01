@@ -136,15 +136,5 @@ export PATH="$HOME/tools/android_sdk/android-studio-2022.1.1.21-linux/android-st
 # autocompeltion
 source ~/.local/share/blesh/ble.sh
 # prompt
-eval "$(starship init bash)"
 export STARSHIP_CONFIG="${HOME}/.dotfiles/home/.config/starship/starship.toml"
-source ~/.local/share/blesh/ble.sh
-source ~/.local/share/blesh/ble.sh
-source ~/.local/share/blesh/ble.sh
-source ~/.local/share/blesh/ble.sh
-source ~/.local/share/blesh/ble.sh
-source ~/.local/share/blesh/ble.sh
-source ~/.local/share/blesh/ble.sh
-source ~/.local/share/blesh/ble.sh
-source ~/.local/share/blesh/ble.sh
-source ~/.local/share/blesh/ble.sh
+eval "$(starship init bash)"
