@@ -138,3 +138,13 @@ source ~/.local/share/blesh/ble.sh
 # prompt
 eval "$(starship init bash)"
 export STARSHIP_CONFIG="${HOME}/.dotfiles/home/.config/starship/starship.toml"
+source ~/.local/share/blesh/ble.sh
+source ~/.local/share/blesh/ble.sh
+source ~/.local/share/blesh/ble.sh
+source ~/.local/share/blesh/ble.sh
+source ~/.local/share/blesh/ble.sh
+source ~/.local/share/blesh/ble.sh
+source ~/.local/share/blesh/ble.sh
+source ~/.local/share/blesh/ble.sh
+source ~/.local/share/blesh/ble.sh
+source ~/.local/share/blesh/ble.sh

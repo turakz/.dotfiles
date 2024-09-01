@@ -21,6 +21,16 @@ else
   export CYAN=''
 fi
 
+if ! hash git 2> /dev/null; then
+  echo -e "${RED}FATAL ERROR: please${NOFMT}${GREEN}git${NOFMT} ${RED}before running, terminating...${NOFMT}"
+  return
+else
+  echo -e "${GREEN}fractals::${NOFMT}${CYAN}checking for latest .dofiles/...${NOFMT}"
+  git fetch
+  git pull
+  git submodule update --init --recursive
+fi
+
 # add firefox repository for latest/manage as deb pkg
 #echo -e "installing ${GREEN}fractals::${NOFMT}environment::adding apt repository... mozillateam (firefox)"
 #sudo add-apt-repository ppa:mozillateam/ppa
@@ -47,6 +57,7 @@ sudo apt update -y
   # lib32z1 \
 
 SOFTWARE_PACKAGES=" \
+  black \
   curl \
   bash-completion \
   build-essential \
@@ -93,7 +104,7 @@ SOFTWARE_PACKAGES=" \
   "
 
 echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing software...${NOFMT}"
-sudo apt install -f -y $SOFTWARE_PACKAGES
+sudo apt-get install -y $SOFTWARE_PACKAGES
 
 ##################
 # language support
@@ -110,49 +121,58 @@ LANGUAGE_PACKAGES=" \
   "
 
 echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing lua, python...${NOFMT}"
-sudo apt install -f -y $LANGUAGE_PACKAGES
+sudo apt-get install -y $LANGUAGE_PACKAGES
 
 echo -e "${GREEN}fractals::${NOFMT}${CYAN}upgrading pip...${NOFMT}"
 python3 -m pip install --upgrade pip
 
-echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing pyright...${NOFMT}"
+echo -e "${GREEN}fractals::${NOFMT}${CYAN}snap installing pyright... ${NOFMT}"
 sudo snap install pyright --classic
 
-echo -e "${GREEN}fractals::${NOFMT}${CYAN}upgrading pynvim...${NOFMT}"
+echo -e "${GREEN}fractals::${NOFMT}${CYAN}pip3 upgrading pynvim... ${NOFMT}"
 pip3 install pynvim --upgrade
 
-echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing black...${NOFMT}"
-pipx install black
-
-echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing hatch...${NOFMT}"
+echo -e "${GREEN}fractals::${NOFMT}${CYAN}pipx installing hatch... ${NOFMT}"
 pipx install hatch
 
 ######
 # lua
 #####
-echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing lua-language-server...${NOFMT}"
-cd $HOME
-mkdir tools
-echo -e "${ORANGE}making${NOFMT} ${CYAN}/home/tools/${NOFMT}"
-cd tools
-pwd
-git clone --depth 1 https://github.com/LuaLS/lua-language-server
-cd lua-language-server
-bash make.sh
+if ! hash lua-language-server 2> /dev/null; then
+  echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing lua-language-server...${NOFMT}"
+  cd $HOME
+  mkdir tools
+  echo -e "${ORANGE}making${NOFMT} ${CYAN}/home/tools/${NOFMT}"
+  cd tools
+  wd=$(pwd)
+  echo -e "${GREEN}fractals::current working directory:${NOFMT} ${CYAN}${wd}${NOFMT}"
+  git clone --depth 1 https://github.com/LuaLS/lua-language-server
+  cd lua-language-server
+  bash make.sh
+else
+  echo -e "${GREEN}fractals::${NOFMT}${CYAN}lua-language-server${NOCMFT} ${ORANGE}already installed${NOFMT}"
+fi
 
 ####################################################
 # neovim
 # add neovim repository for latest/manage as deb pkg
 ####################################################
-echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing neovim...${NOFMT}"
-sudo add-apt-repository ppa:neovim-ppa/unstable
+if ! hash nvim 2> /dev/null; then
+  echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing neovim...${NOFMT}"
+  sudo add-apt-repository ppa:neovim-ppa/unstable
 
-echo -e "${GREEN}fractals::${NOFMT}${CYAN}configuring neovim...${NOFMT}"
-nvim --headless -c 'call mkdir(stdpath("config"), "p") | exe "edit" stdpath("config") . "/init.lua" | write | quit'
+  echo -e "${GREEN}fractals::${NOFMT}${CYAN}configuring neovim...${NOFMT}\n"
+  nvim --headless -c 'call mkdir(stdpath("config"), "p") | exe "edit" stdpath("config") . "/init.lua" | write | quit'
 
-echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing neovim plugin manager packer...${NOFMT}"
-git clone --depth 1 https://github.com/wbthomason/packer.nvim\
- ~/.local/share/nvim/site/pack/packer/start/packer.nvim
+  echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing neovim plugin manager packer...${NOFMT}"
+  git clone --depth 1 https://github.com/wbthomason/packer.nvim\
+   ~/.local/share/nvim/site/pack/packer/start/packer.nvim
+
+else
+  echo -e "${GREEN}fractals::${NOFMT}${CYAN}neovim${NOCMFT} ${ORANGE}already installed${NOFMT}"
+fi
+echo -e "${GREEN}fractals::${NOFMT}${CYAN}running packer...${NOFMT}\n"
+nvim --headless +PackerClean +PackerSync +UpdateRemotePlugins +TSUpdateSync :checkhealth +q
 
 ###############
 # flutter/dart
@@ -174,7 +194,7 @@ git clone --depth 1 https://github.com/wbthomason/packer.nvim\
 ######
 # rust
 ######
-echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing rust toolchain...${NOFMT}"
+echo -e "\n${GREEN}fractals::${NOFMT}${CYAN}installing rust toolchain...${NOFMT}"
 sudo curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 source $HOME/.cargo/env
 sudo rustup update
@@ -182,22 +202,33 @@ sudo rustup update
 ##############################################
 # ble.sh: https://github.com/akinomyoga/ble.sh
 ##############################################
-echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing ble.sh...${NOFMT}"
+echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing ble.sh in ${HOME}...${NOFMT}"
+cd ~
+wd=$(pwd)
+echo -e "${GREEN}fractals::current working directory:${NOFMT} ${CYAN}${wd}${NOFMT}"
 git clone --recursive --depth 1 --shallow-submodules https://github.com/akinomyoga/ble.sh.git
 make -C ble.sh install PREFIX=~/.local
 echo 'source ~/.local/share/blesh/ble.sh' >> ~/.bashrc
+cd .dotfiles
+wd=$(pwd)
+echo -e "${GREEN}fractals::current working directory:${NOFMT} ${CYAN}${wd}${NOFMT}"
 
 ###########
 # starship:
 ###########
-echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing starship...${NOFMT}"
-curl -sS https://starship.rs/install.sh | sh
+if ! hash starship 2> /dev/null; then
+  echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing starship...${NOFMT}"
+  curl -sS https://starship.rs/install.sh | sh
+else
+  echo -e "${GREEN}fractals::${NOFMT}${CYAN}starship${NOCMFT} ${ORANGE}already installed${NOFMT}"
+fi
 
 ###########
 # COMPLETE
 ##########
 echo -e "${GREEN}fractals::${NOFMT}${CYAN}installation complete!${NOFMT}"
-echo -e "${ORANGE}\treminder: append to PATH in.bashrc${NOFMT}: ${CYAN}/home/tools/lua-language-server/bin:${NOFMT}"
-echo -e "${ORANGE}\treminder: farm symlinks for home directory, remove dead links${NOFMT}"
-echo -e "${ORANGE}\treminder: open neovim and run :PackerClean, :PackerSync, :UpdateRemotePlugins, :TSUpdate, :TSSync, :checkhealth${NOFMT}"
-echo -e "${ORANGE}\treminder: make sure${NOFMT}${WHITE}\$\HOME: $HOME${NOFMT} directory in ${RED}~/.config/hatch/config.toml${NOFMT} gets updated to reflect the host machine${NOFMT}"
+echo -e "${ORANGE}\treminder: append to PATH in ${CYAN}.bashrc${NOFMT}${ORANGE}: ${NOFMT}${CYAN}/home/tools/lua-language-server/bin:${NOFMT}"
+echo -e "${ORANGE}\treminder: farm symlinks for home directory, remove dead links in your actual ${CYAN}.config/${NOFMT} ${ORANGE}directory${NOFMT}"
+#echo -e "${ORANGE}\treminder: open neovim and run :PackerClean, :PackerSync, :UpdateRemotePlugins, :TSUpdateSync, :checkhealth${NOFMT}"
+echo -e "${ORANGE}\treminder: make sure to update \$HOME path: ${CYAN}$HOME${NOFMT} ${ORANGE}in${NOFMT} ${CYAN}~/.config/hatch/config.toml${NOFMT} ${ORANGE}of your host machine${NOFMT}"
+echo -e "${ORANGE}\treminder: and afterwards, please restart your terminal session${NOFMT}"
