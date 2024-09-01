@@ -133,6 +133,7 @@ export PATH="/usr/local/bin:$PATH"
 export PATH="$HOME/.local/bin:$PATH"
 export PATH="$HOME/tools/android_sdk/android-studio-2022.1.1.21-linux/android-studio/jbr/bin:$PATH"
 
+# these lines must execute before ble and starship can work
 # autocompeltion
 source ~/.local/share/blesh/ble.sh
 # prompt
