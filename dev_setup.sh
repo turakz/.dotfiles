@@ -173,6 +173,8 @@ else
 fi
 echo -e "${GREEN}fractals::${NOFMT}${CYAN}running packer...${NOFMT}\n"
 nvim --headless +PackerClean +PackerSync +UpdateRemotePlugins +TSUpdateSync :checkhealth +q!
+# don't tracker updates to plugin compilation
+git update-index --assume-unchanged home/.config/nvim/plugin/packer_compiled.lua
 
 ###############
 # flutter/dart
