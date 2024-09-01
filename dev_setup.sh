@@ -188,6 +188,12 @@ make -C ble.sh install PREFIX=~/.local
 echo 'source ~/.local/share/blesh/ble.sh' >> ~/.bashrc
 
 ###########
+# starship:
+###########
+echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing starship...${NOFMT}"
+curl -sS https://starship.rs/install.sh | sh
+
+###########
 # COMPLETE
 ##########
 echo -e "${GREEN}fractals::${NOFMT}${CYAN}installation complete!${NOFMT}"
