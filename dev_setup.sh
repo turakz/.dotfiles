@@ -172,7 +172,7 @@ else
   echo -e "${GREEN}fractals::${NOFMT}${CYAN}neovim${NOCMFT} ${ORANGE}already installed${NOFMT}"
 fi
 echo -e "${GREEN}fractals::${NOFMT}${CYAN}running packer...${NOFMT}\n"
-nvim --headless +PackerClean +PackerSync +UpdateRemotePlugins +TSUpdateSync :checkhealth +q
+nvim --headless +PackerClean +PackerSync +UpdateRemotePlugins +TSUpdateSync :checkhealth +q!
 
 ###############
 # flutter/dart
