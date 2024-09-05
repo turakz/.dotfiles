@@ -70,7 +70,6 @@ SOFTWARE_PACKAGES=" \
   cmake-doc \
   fd-find \
   firefox \
-  gdb \
   gdb-multiarch \
   g++ \
   git \
@@ -80,6 +79,9 @@ SOFTWARE_PACKAGES=" \
   lldb \
   llvm \
   libc++-dev \
+  libgmp3-dev \
+  libmpfr-dev \
+  libmpfr-doc \
   mold \
   neovim \
   ninja-build \
@@ -135,15 +137,42 @@ pip3 install pynvim --upgrade
 echo -e "${GREEN}fractals::${NOFMT}${CYAN}pipx installing hatch... ${NOFMT}"
 pipx install hatch
 
+##################################
+# gdb with python support for dap
+##################################
+if ! hash gdb 2> /dev/null; then
+  echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing gdb with python dap support...${NOFMT}"
+  if test -d ~/tools; then
+    cd $HOME/tools
+  else
+    cd $HOME
+    mkdir tools
+    echo -e "${ORANGE}making${NOFMT} ${CYAN}/home/tools/${NOFMT}"
+    cd tools
+  fi
+  wget "http://ftp.gnu.org/gnu/gdb/gdb-15.1.tar.gz"
+  tar -xvzf gdb-15.1.tar.gz
+  cd gdb-15.1
+  bash configure --with-python=/usr/bin/python --with-gmp/usr/lib/x86_64-linux-gnu/ --with-mpfr=/usr/lib/x86_64-linux-gnu/
+  make
+  sudo make install
+  gdb --version
+else
+fi
+
 ######
 # lua
 #####
 if ! hash lua-language-server 2> /dev/null; then
   echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing lua-language-server...${NOFMT}"
-  cd $HOME
-  mkdir tools
-  echo -e "${ORANGE}making${NOFMT} ${CYAN}/home/tools/${NOFMT}"
-  cd tools
+  if test -d ~/tools; then
+    cd $HOME/tools
+  else
+    cd $HOME
+    mkdir tools
+    echo -e "${ORANGE}making${NOFMT} ${CYAN}/home/tools/${NOFMT}"
+    cd tools
+  fi
   wd=$(pwd)
   echo -e "${GREEN}fractals::current working directory:${NOFMT} ${CYAN}${wd}${NOFMT}"
   git clone --depth 1 https://github.com/LuaLS/lua-language-server
