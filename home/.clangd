@@ -16,3 +16,4 @@ CompileFlags:
     -Wconversion
     -Wunreachable-code
     -std=c++17
+  Compiler: g++

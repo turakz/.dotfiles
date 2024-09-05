@@ -18,7 +18,6 @@ return require("packer").startup(function(use)
   -- show indentation structure
   use "lukas-reineke/indent-blankline.nvim"
 
-
   -- completion engine
   use "hrsh7th/cmp-nvim-lsp"
   use "hrsh7th/cmp-buffer"
@@ -89,7 +88,11 @@ return require("packer").startup(function(use)
   -- debugging
   use "mfussenegger/nvim-dap"
   use { "rcarriga/nvim-dap-ui", requires = {"mfussenegger/nvim-dap", "nvim-neotest/nvim-nio"} }
+  -- use {
+  --  "jay-babu/mason-nvim-dap.nvim",
+  -- }
 
+  -- nvim/tmux status bars
   use {
     'nvim-lualine/lualine.nvim',
     requires = { 'nvim-tree/nvim-web-devicons', opt = true }

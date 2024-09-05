@@ -104,3 +104,7 @@ vim.api.nvim_set_keymap(
   ":Telescope file_browser path=%:p:h select_buffer=true<CR>",
   { noremap = true }
 )
+
+-- add lsp keybinds
+
+-- add dap keybinds: https://github.com/JonTheBurger/.dotfiles/blob/master/home/.config/nvim/lua/jontheburger/plugins/nvim-dap.lua

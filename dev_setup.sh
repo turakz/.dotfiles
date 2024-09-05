@@ -78,6 +78,7 @@ SOFTWARE_PACKAGES=" \
   lld \
   lldb \
   llvm \
+  libstdc++-12-dev \
   libc++-dev \
   libgmp3-dev \
   libmpfr-dev \

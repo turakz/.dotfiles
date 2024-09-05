@@ -63,7 +63,7 @@ cmp.setup.cmdline(':', {
 
 -- lsp configurations: https://github.com/neovim/nvim-lspconfig
 ---------------------
---vim.lsp.set_log_level("debug")
+vim.lsp.set_log_level("debug")
 
 -- Mappings.
 -- See `:help vim.diagnostic.*` for documentation on any of the below functions
@@ -107,9 +107,14 @@ local lsp_flags = {
 
 -- c family support
 require('lspconfig')['clangd'].setup {
+  cmd = { "clangd", "--log=verbose" },
   on_attach = on_attach,
   flags = lsp_flags,
   capabilities = require('cmp_nvim_lsp').default_capabilities(),
+  filetypes = {
+  "c", "cpp", "objc", "objcpp", "cuda", "proto"
+  },
+  root_dir = require('lspconfig').util.root_pattern('.clangd', '.clang-tidy', '.clang-format', 'compile_commands.json', 'compile_flags.txt', '.git'),
 }
 -- lua support
 require('lspconfig')['lua_ls'].setup {
