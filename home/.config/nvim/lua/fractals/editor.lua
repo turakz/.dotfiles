@@ -100,7 +100,7 @@ vim.keymap.set('n', '<leader>ff', telescope_builtin.find_files, {})
 vim.keymap.set('n', '<leader>gf', telescope_builtin.git_files, {})
 vim.keymap.set('n', '<leader>lg', telescope_builtin.live_grep, {})
 -- vim.keymap.set('n', '<leader>gd', telescope_builtin.lsp_definitions, {})
-vim.keymap.set('n', '<leader>fb', telescope_builtin.buffers, {})
+vim.keymap.set('n', '<leader>fbf', telescope_builtin.buffers, {})
 vim.keymap.set('n', '<leader>fh', telescope_builtin.help_tags, {})
 
 -- file_browser

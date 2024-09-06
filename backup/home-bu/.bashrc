@@ -122,16 +122,20 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 . "$HOME/.cargo/env"
 
-
-# append extra PATH dirs
-#export PATH="$HOME/.local/bin:$PATH"
-
 export EDITOR='nvim'
 
+# alias for lua lsp
+
+# append extra PATH dirs
 alias luamake=/home/harryblotter/zdev/tools/lua-language-server/3rd/luamake/luamake
 export PATH="$HOME/tools/lua-language-server/bin:$PATH"
+export PATH="/usr/local/bin:$PATH"
+export PATH="$HOME/.local/bin:$PATH"
 export PATH="$HOME/tools/android_sdk/android-studio-2022.1.1.21-linux/android-studio/jbr/bin:$PATH"
 
-eval "$(starship init bash)"
-
+# these lines must execute before ble and starship can work
+# autocompeltion
+source ~/.local/share/blesh/ble.sh
+# prompt
 export STARSHIP_CONFIG="${HOME}/.dotfiles/home/.config/starship/starship.toml"
+eval "$(starship init bash)"

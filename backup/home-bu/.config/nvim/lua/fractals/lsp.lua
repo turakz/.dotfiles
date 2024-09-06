@@ -63,9 +63,8 @@ cmp.setup.cmdline(':', {
 
 -- lsp configurations: https://github.com/neovim/nvim-lspconfig
 ---------------------
---vim.lsp.set_log_level("debug")
-
--- Mappings.
+vim.lsp.set_log_level("debug")
+-- keybinds
 -- See `:help vim.diagnostic.*` for documentation on any of the below functions
 local opts = { noremap=true, silent=true }
 vim.keymap.set('n', '<space>e', vim.diagnostic.open_float, opts)
@@ -79,7 +78,6 @@ local on_attach = function(client, bufnr)
   -- Enable completion triggered by <c-x><c-o>
   vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
 
-  -- Mappings.
   -- See `:help vim.lsp.*` for documentation on any of the below functions
   local bufopts = { noremap=true, silent=true, buffer=bufnr }
   vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, bufopts)
@@ -107,9 +105,14 @@ local lsp_flags = {
 
 -- c family support
 require('lspconfig')['clangd'].setup {
+  cmd = { "clangd", "--log=verbose" },
   on_attach = on_attach,
   flags = lsp_flags,
   capabilities = require('cmp_nvim_lsp').default_capabilities(),
+  filetypes = {
+  "c", "cpp", "objc", "objcpp", "cuda", "proto"
+  },
+  root_dir = require('lspconfig').util.root_pattern('.clangd', '.clang-tidy', '.clang-format', 'compile_commands.json', 'compile_flags.txt', '.git'),
 }
 -- lua support
 require('lspconfig')['lua_ls'].setup {

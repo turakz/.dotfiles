@@ -40,4 +40,3 @@ set -sg escape-time 0
 
 # use C-a v to paste the tmux buffer
 bind v paste-buffer
-
