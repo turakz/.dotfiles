@@ -135,6 +135,9 @@ sudo snap install pyright --classic
 echo -e "${GREEN}fractals::${NOFMT}${CYAN}pip3 upgrading pynvim... ${NOFMT}"
 pip3 install pynvim --upgrade
 
+echo -e "${GREEN}fractals::${NOFMT}${CYAN}pip3 upgrading debugpy... ${NOFMT}"
+pip3 install debugpy --upgrade
+
 echo -e "${GREEN}fractals::${NOFMT}${CYAN}pipx installing hatch... ${NOFMT}"
 pipx install hatch
 

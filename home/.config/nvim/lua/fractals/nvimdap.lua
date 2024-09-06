@@ -57,3 +57,13 @@ dap.configurations.c = {
 
 dap.configurations.cpp = dap.configurations.c
 dap.configurations.rust = dap.configurations.cpp
+
+-- dap-python: https://github.com/mfussenegger/nvim-dap-python
+-- venvs
+-- require("dap-python").setup("/path/to/venv/bin/python")
+-- if using the above, then `/path/to/venv/bin/python -m debugpy --version`
+-- must work in the shell
+-- normal
+require("dap-python").setup("python")
+-- if using the above, then `python -m debugpy --version`
+-- must work in the shell
