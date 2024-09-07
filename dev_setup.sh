@@ -86,6 +86,8 @@ SOFTWARE_PACKAGES=" \
   mold \
   neovim \
   ninja-build \
+  nodejs \
+  npm \
   openjdk-8-jdk \
   ripgrep \
   shfmt \
