@@ -182,6 +182,23 @@ if ! hash lua-language-server 2> /dev/null; then
   git clone --depth 1 https://github.com/LuaLS/lua-language-server
   cd lua-language-server
   bash make.sh
+  if ! hash npm 2> /dev/null; then
+    echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing lua-local-debugger...${NOFMT}"
+    cd ${HOME}/tools
+    wd=$(pwd)
+    echo -e "${GREEN}fractals::current working directory:${NOFMT} ${CYAN}${wd}${NOFMT}"
+    git clone https://github.com/tomblind/local-lua-debugger-vscode.git
+    cd local-lua-debugger-vscode
+    wd=$(pwd)
+    echo -e "${GREEN}fractals::current working directory:${NOFMT} ${CYAN}${wd}${NOFMT}"
+    npm install
+    npm run build
+    cd ${HOME}
+    wd=$(pwd)
+    echo -e "${GREEN}fractals::current working directory:${NOFMT} ${CYAN}${wd}${NOFMT}"
+  else
+    echo -e "${ORANGE}fractals::${NOFMT}${CYAN}lua-local-debugger${NOFMT} ${ORANGE}cannot be installed,${NOFMT} ${CYAN}npm${NOFMT}${ORANGE}missing${NOFMT}"
+  fi
 else
   echo -e "${GREEN}fractals::${NOFMT}${CYAN}lua-language-server${NOCMFT} ${ORANGE}already installed${NOFMT}"
 fi
