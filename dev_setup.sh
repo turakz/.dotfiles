@@ -86,8 +86,6 @@ SOFTWARE_PACKAGES=" \
   libgmp3-dev \
   libmpfr-dev \
   libmpfr-doc \
-  luarocks \
-  luacheck \
   mold \
   neovim \
   ninja-build \
@@ -122,6 +120,8 @@ sudo apt-get install -y $SOFTWARE_PACKAGES
 ##################
 LANGUAGE_PACKAGES=" \
   lua5.3 \
+  liblua5.3-dev \
+  luarocks \
   pipx \
   python-is-python3 \
   python3 \
@@ -212,8 +212,10 @@ fi
 
 # luacheck via luarocks
 if ! hash luacheck 2> /dev/null; then
-    echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing luacheck...${NOFMT}"
-    sudo luarocks install luacheck
+  echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing luacheck...${NOFMT}"
+  sudo luarocks install luacheck
+else
+  echo -e "${GREEN}fractals::${NOFMT}${CYAN}luacheck${NOFMT} ${ORANGE}already installed${NOFMT}"
 fi
 
 ####################################################

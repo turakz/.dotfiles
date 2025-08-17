@@ -7,7 +7,7 @@ lint.linters_by_ft = {
   cpp = { "cpplint" },
   bash = { "shellcheck" },
   sh = { "shellcheck" },
-  -- lua = { "luacheck" },
+  lua = { "luacheck" },
   cmake = { "cmakelint" },
   -- rust uses clippy via rust_analyzer LSP, so not needed here
 }
