@@ -135,7 +135,7 @@ require("which-key").setup({
   plugins = {
     marks = true,
     registers = true,
-    spelling = { enabled = true, suggestions = 20 },
+    spelling = { enabled = false, suggestions = 20 },
   },
 })
 
