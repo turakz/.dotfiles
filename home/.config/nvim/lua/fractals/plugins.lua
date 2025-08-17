@@ -59,6 +59,9 @@ return require("packer").startup(function(use)
   -- clangd extensions
   use { "p00f/clangd_extensions.nvim", requires = { "neovim/nvim-lspconfig", "hrsh7th/cmp-nvim-lsp" } }
 
+  -- linting
+  use "mfussenegger/nvim-lint"
+
   -- flutter
   use { "akinsho/flutter-tools.nvim", requires = { "nvim-lua/plenary.nvim", "stevearc/dressing.nvim" } }
 

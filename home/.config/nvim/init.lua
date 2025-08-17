@@ -8,6 +8,8 @@
 ]] --
 -- load plugins first
 require("fractals/plugins")
+-- load mason package manager
+require("fractals/mason")
 -- basic options
 require("fractals/options")
 -- autocommands
@@ -21,6 +23,7 @@ require("fractals/filebrowsing")
 -- lsp + completion
 require("fractals/lsp")
 require("fractals/clangd_exts")
+require("fractals/lint")
 -- editor configs
 require("fractals/editor")
 -- debugging

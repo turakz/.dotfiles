@@ -129,3 +129,22 @@ map('n', '<F12>', dap.clear_breakpoints, { desc = "dap clear breakpoints" })
 --map('', '<down>', '<nop>')
 --map('', '<left>', '<nop>')
 --map('', '<right>', '<nop>')
+
+-- which-key config
+require("which-key").setup({
+  plugins = {
+    marks = true,
+    registers = true,
+    spelling = { enabled = true, suggestions = 20 },
+  },
+})
+
+-- Updated spec format (newer which-key version)
+local wk = require("which-key")
+wk.add({
+  { "<leader>c", group = "Code" },
+  { "<leader>d", group = "Debug/DAP" },
+  { "<leader>f", group = "Find (Telescope)" },
+  { "<leader>g", group = "Git" },
+  { "<leader>t", group = "Toggle" },
+})

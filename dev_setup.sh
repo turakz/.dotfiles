@@ -68,8 +68,11 @@ SOFTWARE_PACKAGES=" \
   clangd \
   cmake \
   cmake-doc \
+  cmake-format \
+  cppcheck \
   fd-find \
   firefox \
+  flake8 \
   gdb-multiarch \
   g++ \
   git \
@@ -83,6 +86,8 @@ SOFTWARE_PACKAGES=" \
   libgmp3-dev \
   libmpfr-dev \
   libmpfr-doc \
+  luarocks \
+  luacheck \
   mold \
   neovim \
   ninja-build \
@@ -90,6 +95,7 @@ SOFTWARE_PACKAGES=" \
   npm \
   openjdk-8-jdk \
   ripgrep \
+  shellcheck \
   shfmt \
   software-properties-common \
   stow \
@@ -163,7 +169,6 @@ if ! hash gdb 2> /dev/null; then
   make
   sudo make install
   gdb --version
-else
 fi
 
 ######
@@ -205,26 +210,34 @@ else
   echo -e "${GREEN}fractals::${NOFMT}${CYAN}lua-language-server${NOCMFT} ${ORANGE}already installed${NOFMT}"
 fi
 
+# luacheck via luarocks
+if ! hash luacheck 2> /dev/null; then
+    echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing luacheck...${NOFMT}"
+    sudo luarocks install luacheck
+fi
+
 ####################################################
 # neovim
 # add neovim repository for latest/manage as deb pkg
 ####################################################
 if ! hash nvim 2> /dev/null; then
-  echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing neovim...${NOFMT}"
-  sudo add-apt-repository ppa:neovim-ppa/unstable
+    echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing neovim...${NOFMT}"
+    sudo add-apt-repository ppa:neovim-ppa/unstable -y
+    sudo apt update
+    sudo apt install neovim -y
 
-  echo -e "${GREEN}fractals::${NOFMT}${CYAN}configuring neovim...${NOFMT}\n"
-  nvim --headless -c 'call mkdir(stdpath("config"), "p") | exe "edit" stdpath("config") . "/init.lua" | write | quit'
+    # Only do initial config if it's a fresh install
+    echo -e "${GREEN}fractals::${NOFMT}${CYAN}configuring neovim...${NOFMT}"
+    nvim --headless -c 'call mkdir(stdpath("config"), "p") | quit'
 
-  echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing neovim plugin manager packer...${NOFMT}"
-  git clone --depth 1 https://github.com/wbthomason/packer.nvim\
-   ~/.local/share/nvim/site/pack/packer/start/packer.nvim
-
+    echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing packer...${NOFMT}"
+    git clone --depth 1 https://github.com/wbthomason/packer.nvim \
+     ~/.local/share/nvim/site/pack/packer/start/packer.nvim
 else
   echo -e "${GREEN}fractals::${NOFMT}${CYAN}neovim${NOCMFT} ${ORANGE}already installed${NOFMT}"
 fi
 echo -e "${GREEN}fractals::${NOFMT}${CYAN}running packer...${NOFMT}\n"
-nvim --headless +PackerClean +PackerSync +UpdateRemotePlugins +TSUpdateSync :checkhealth +q!
+nvim --headless +PackerClean +PackerSync +UpdateRemotePlugins +TSUpdateSync +q!
 # don't tracker updates to plugin compilation
 git update-index --assume-unchanged home/.config/nvim/plugin/packer_compiled.lua
 
@@ -249,9 +262,13 @@ git update-index --assume-unchanged home/.config/nvim/plugin/packer_compiled.lua
 # rust
 ######
 echo -e "\n${GREEN}fractals::${NOFMT}${CYAN}installing rust toolchain...${NOFMT}"
-sudo curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-source $HOME/.cargo/env
-sudo rustup update
+if ! hash cargo 2> /dev/null; then
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+    source $HOME/.cargo/env
+    rustup update
+else
+    echo -e "${GREEN}fractals::${NOFMT}${CYAN}rust${NOFMT} ${ORANGE}already installed${NOFMT}"
+fi
 
 ##############################################
 # ble.sh: https://github.com/akinomyoga/ble.sh

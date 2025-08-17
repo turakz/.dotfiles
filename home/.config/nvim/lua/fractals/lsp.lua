@@ -55,6 +55,12 @@ lspconfig.clangd.setup {
   filetypes = { "c", "cpp", "objc", "objcpp", "cuda", "proto" },
 }
 
+-- cmake language server
+lspconfig.cmake.setup {
+  on_attach = on_attach,
+  capabilities = capabilities,
+}
+
 -- lua
 lspconfig.lua_ls.setup {
   on_attach = on_attach,
@@ -71,4 +77,29 @@ lspconfig.pyright.setup {
 require('flutter-tools').setup {
   on_attach = on_attach,
   capabilities = capabilities,
+}
+
+-- rust
+lspconfig.rust_analyzer.setup {
+  on_attach = on_attach,
+  capabilities = capabilities,
+  settings = {
+    ["rust-analyzer"] = {
+      cargo = { allFeatures = true },
+      checkOnSave = { command = "clippy" },
+    }
+  }
+}
+
+-- bash language server
+lspconfig.bashls.setup {
+  on_attach = on_attach,
+  capabilities = capabilities,
+}
+
+-- powershell (if you use it regularly)
+lspconfig.powershell_es.setup {
+  on_attach = on_attach,
+  capabilities = capabilities,
+  bundle_path = vim.fn.stdpath("data") .. "/mason/packages/powershell-editor-services",
 }
