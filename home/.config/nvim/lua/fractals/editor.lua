@@ -1,136 +1,131 @@
--- current <leader>
+-----------------------------------------------------------
+-- editor.lua
+-- keymaps, commands, and plugin shortcuts
+-----------------------------------------------------------
+
+-- set leader key
 vim.g.mapleader = ' '
 
-------------------------------------------------------------
--- Whitespace, Newlines, and Line Numbers
-------------------------------------------------------------
-vim.opt.listchars:append({ space = '⋅' })
-vim.opt.listchars:append({ eol = '↵' })
-vim.opt.relativenumber = true
-vim.opt.shiftwidth = 2
-vim.opt.tabstop = 2
-vim.opt.spell = false
--- custom commands
-function buffer_quit_all_except_visible(opts)
+-----------------------------------------------------------
+-- utility functions / custom commands
+-----------------------------------------------------------
+
+-- quit all buffers except visible ones
+local function buffer_quit_all_except_visible()
   local buffers = vim.fn.getbufinfo({ buflisted = 1 })
   for _, buffer in ipairs(buffers) do
     local is_visible = vim.fn.bufwinnr(buffer.bufnr) > 0
-    if not is_visible then
-      if buffer ~= vim.api.nvim_get_current_buf() then
-        vim.api.nvim_buf_delete(buffer.bufnr, { force = true })
-      end
+    if not is_visible and buffer.bufnr ~= vim.api.nvim_get_current_buf() then
+      vim.api.nvim_buf_delete(buffer.bufnr, { force = true })
     end
   end
 end
 vim.api.nvim_create_user_command("QAEV", buffer_quit_all_except_visible, {})
 
 -----------------------------------------------------------
--- Define keymaps of Neovim and installed plugins.
+-- helper for consistent keymap options
 -----------------------------------------------------------
-
 local function map(mode, lhs, rhs, opts)
   local options = { noremap = true, silent = true }
   if opts then
+    if opts.desc then
+      opts.desc = "editor.lua: " .. opts.desc
+    end
     options = vim.tbl_extend('force', options, opts)
   end
-  vim.api.nvim_set_keymap(mode, lhs, rhs, options)
+  vim.keymap.set(mode, lhs, rhs, options)
 end
 
+-----------------------------------------------------------
+-- neovim shortcuts
+-----------------------------------------------------------
+
+-- clear search highlighting
+map('n', '<leader>c', ':nohl<CR>', { desc = "clear search highlight" })
+
+-- toggle paste mode
+map('n', '<F11>', ':set invpaste paste?<CR>', { desc = "toggle paste mode" })
+
+-- split orientation
+map('n', '<leader>tk', '<C-w>t<C-w>K', { desc = "vertical to horizontal split" })
+map('n', '<leader>th', '<C-w>t<C-w>H', { desc = "horizontal to vertical split" })
+
+-- move around splits with ctrl + {h,j,k,l}
+map('n', '<C-h>', '<C-w>h', { desc = "move left" })
+map('n', '<C-j>', '<C-w>j', { desc = "move down" })
+map('n', '<C-k>', '<C-w>k', { desc = "move up" })
+map('n', '<C-l>', '<C-w>l', { desc = "move right" })
+
+-- reload config
+map('n', '<leader>r', ':so %<CR>', { desc = "reload current file" })
+
+-- fast save
+map('n', '<leader>s', ':w<CR>', { desc = "save file" })
+
+-- quit neovim
+map('n', '<leader>q', ':qa!<CR>', { desc = "quit neovim" })
 
 -----------------------------------------------------------
--- Neovim shortcuts
+-- terminal mappings
 -----------------------------------------------------------
+map('n', '<C-t>', ':Term<CR>', { desc = "open terminal" })
+map('t', '<Esc>', '<C-\\><C-n>', { desc = "exit terminal mode" })
+
+-----------------------------------------------------------
+-- nvim-tree mappings
+-----------------------------------------------------------
+map('n', '<F1>', ':NvimTreeFocus<CR>', { desc = "focus nvim tree" })
+map('n', '<F2>', ':NvimTreeToggle<CR>', { desc = "toggle nvim tree" })
+map('n', '<F3>', ':NvimTreeCollapse<CR>', { desc = "collapse nvim tree" })
+map('n', '<F4>', ':NvimTreeFindFile<CR>', { desc = "find file in nvim tree" })
+map('n', '<S-F1>', ':NvimTreeRefresh<CR>', { desc = "refresh nvim tree" })
+map('n', '<leader>e', ':NvimTreeToggle<CR>', { desc = "toggle nvim tree with leader" })
+map('n', '<leader>c', ':NvimTreeCollapse<CR>', { desc = "collapse nvim tree with leader" })
+
+-----------------------------------------------------------
+-- tagbar
+-----------------------------------------------------------
+map('n', '<leader>z', ':TagbarToggle<CR>', { desc = "toggle tagbar" })
+
+-----------------------------------------------------------
+-- telescope mappings
+-----------------------------------------------------------
+local telescope_builtin = require('telescope.builtin')
+map('n', '<leader>ff', telescope_builtin.find_files, { desc = "find files" })
+map('n', '<leader>gf', telescope_builtin.git_files, { desc = "git files" })
+map('n', '<leader>lg', telescope_builtin.live_grep, { desc = "live grep" })
+map('n', '<leader>fbf', telescope_builtin.buffers, { desc = "list buffers" })
+map('n', '<leader>fh', telescope_builtin.help_tags, { desc = "help tags" })
+map('n', '<leader>fb', ':Telescope file_browser<CR>', { desc = "open file browser" })
+map('n', '<leader>fbp', ':Telescope file_browser path=%:p:h select_buffer=true<CR>', { desc = "file browser at current path" })
+
+-----------------------------------------------------------
+-- dap key mappings
+-- https://github.com/JonTheBurger/.dotfiles/blob/master/home/.config/nvim/lua/jontheburger/plugins/nvim-dap.lua
+-----------------------------------------------------------
+local dap = require('dap')
+local dapui = require('dapui')
+map('n', '<leader>dU', dapui.toggle, { desc = "toggle dap ui" })
+map('n', '<leader>dR', dap.run_to_cursor, { desc = "run to cursor" })
+map('n', '<leader>db', dap.toggle_breakpoint, { desc = "toggle breakpoint" })
+map('n', '<leader>dbc', dap.clear_breakpoints, { desc = "clear breakpoints" })
+map('n', '<leader>dc', dap.continue, { desc = "continue" })
+map('n', '<leader>ds', dap.step_over, { desc = "step over" })
+map('n', '<leader>di', dap.step_into, { desc = "step into" })
+map('n', '<leader>do', dap.step_out, { desc = "step out" })
+map('n', '<leader>dq', dap.terminate, { desc = "terminate" })
+
+-- dap function keys
+map('n', '<F5>', dap.continue, { desc = "dap continue" })
+map('n', '<F6>', dap.step_over, { desc = "dap step over" })
+map('n', '<F7>', dap.step_into, { desc = "dap step into" })
+map('n', '<F8>', dap.step_out, { desc = "dap step out" })
+map('n', '<F9>', dap.toggle_breakpoint, { desc = "dap toggle breakpoint" })
+map('n', '<F10>', dapui.toggle, { desc = "dap ui toggle" })
+map('n', '<F12>', dap.clear_breakpoints, { desc = "dap clear breakpoints" })
 
 -- Disable arrow keys
 --map('', '<up>', '<nop>')
 --map('', '<down>', '<nop>')
 --map('', '<left>', '<nop>')
 --map('', '<right>', '<nop>')
-
--- Clear search highlighting with <leader> and c
-map('n', '<leader>c', ':nohl<CR>')
-
--- Toggle auto-indenting for code paste
-map('n', '<F11>', ':set invpaste paste?<CR>')
--- this setting is apparently deprecated (?): vim.opt.pastetoggle = '<F12>'
-
--- Change split orientation
-map('n', '<leader>tk', '<C-w>t<C-w>K') -- change vertical to horizontal
-map('n', '<leader>th', '<C-w>t<C-w>H') -- change horizontal to vertical
-
--- Move around splits using Ctrl + {h,j,k,l}
-map('n', '<C-h>', '<C-w>h')
-map('n', '<C-j>', '<C-w>j')
-map('n', '<C-k>', '<C-w>k')
-map('n', '<C-l>', '<C-w>l')
-
--- Reload configuration without restart nvim
-map('n', '<leader>r', ':so %<CR>')
-
--- Fast saving with <leader> and s
-map('n', '<leader>s', ':w<CR>')
-
--- Close all windows and exit from Neovim with <leader> and q
-map('n', '<leader>q', ':qa!<CR>')
-
------------------------------------------------------------
--- Applications and Plugins shortcuts
------------------------------------------------------------
-
--- terminal mappings
-map('n', '<C-t>', ':Term<CR>', { noremap = true }) -- open
-map('t', '<Esc>', '<C-\\><C-n>')                   -- exit
-
--- nvimtree
-map('n', '<F1>', ':NvimTreeFocus<CR>')         -- open/close and then focus on tree
-map('n', '<F2>', ':NvimTreeToggle<CR>')        -- open/close and then focus on tree
-map('n', '<F3>', ':NvimTreeCollapse<CR>')      -- collapse recursively
-map('n', '<F4>', ':NvimTreeFindFile<CR>')      -- search file
-map('n', '<S-F1>', ':NvimTreeRefresh<CR>')       -- refresh
--- with leader
-map('n', '<leader>e', ':NvimTreeToggle<CR>')   -- open/close and then focus on tree
-map('n', '<leader>c', ':NvimTreeCollapse<CR>') -- collapse recursively
-
--- tagbar
-map('n', '<leader>z', ':TagbarToggle<CR>') -- open/close
-
--- telescope filebrowser/finding mappings
-local telescope_builtin = require('telescope.builtin')
-vim.keymap.set('n', '<leader>ff', telescope_builtin.find_files, {})
-vim.keymap.set('n', '<leader>gf', telescope_builtin.git_files, {})
-vim.keymap.set('n', '<leader>lg', telescope_builtin.live_grep, {})
--- vim.keymap.set('n', '<leader>gd', telescope_builtin.lsp_definitions, {})
-vim.keymap.set('n', '<leader>fbf', telescope_builtin.buffers, {})
-vim.keymap.set('n', '<leader>fh', telescope_builtin.help_tags, {})
-
--- file_browser
-vim.api.nvim_set_keymap(
-  "n",
-  "<leader>fb",
-  ":Telescope file_browser<CR>",
-  { noremap = true }
-)
--- open file_browser with the path of the current buffer
-vim.api.nvim_set_keymap(
-  "n",
-  "<leader>fbp",
-  ":Telescope file_browser path=%:p:h select_buffer=true<CR>",
-  { noremap = true }
-)
-
--- add dap keybinds: https://github.com/JonTheBurger/.dotfiles/blob/master/home/.config/nvim/lua/jontheburger/plugins/nvim-dap.lua
-vim.keymap.set('n', '<leader>dU', require("dapui").toggle, opts)
-vim.keymap.set('n', '<leader>dR', require("dap").run_to_cursor, opts)
-vim.keymap.set('n', '<leader>db', require("dap").toggle_breakpoint, opts)
-vim.keymap.set('n', '<leader>dc', require("dap").continue, opts)
-vim.keymap.set('n', '<leader>ds', require("dap").step_over, opts)
-vim.keymap.set('n', '<leader>di', require("dap").step_into, opts)
-vim.keymap.set('n', '<leader>do', require("dap").step_out, opts)
-vim.keymap.set('n', '<leader>dq', require("dap").terminate, opts)
-
-map('n', '<F5>', '<cmd>lua require("dap").continue()<cr>')
-map('n', '<F6>', '<cmd>lua require("dap").step_over()<cr>')
-map('n', '<F7>', '<cmd>lua require("dap").step_into()<cr>')
-map('n', '<F8>', '<cmd>lua require("dap").step_out()<cr>')
-map('n', '<F9>', '<cmd>lua require("dap").toggle_breakpoint()<cr>')
-map('n', '<F10>', '<cmd>lua require("dapui").toggle()<cr>')

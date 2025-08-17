@@ -15,6 +15,7 @@ require("dapui").setup{}
 local dap = require("dap")
 
 -- dap-python: https://github.com/mfussenegger/nvim-dap-python
+-- dap-python: https://github.com/nvim-dap-python
 -- venvs
 -- require("dap-python").setup("/path/to/venv/bin/python")
 -- if using the above, then `/path/to/venv/bin/python -m debugpy --version`
@@ -23,6 +24,23 @@ local dap = require("dap")
 require("dap-python").setup("python")
 -- if using the above, then `python -m debugpy --version`
 -- must work in the shell
+table.insert(dap.configurations.python, {
+  type = 'python',
+  justMyCode = false,
+  request = 'launch',
+  name = 'cwd:dap-python',
+  program = '${file}',
+  cwd = '${workspaceFolder}',
+  -- ... more options, see https://github.com/microsoft/debugpy/wiki/Debug-configurations-settings
+})
+
+table.insert(dap.configurations.python, {
+  type = 'python',
+  justMyCode = false,
+  request = 'launch',
+  name = 'cwd:pytest-dap-python',
+  module = 'pytest',
+})
 
 -- gdb adapter
 dap.adapters.gdb = {
@@ -55,6 +73,7 @@ dap.adapters["local-lua"] = {
 dap.configurations.c = {
   {
     name = "launch",
+    justMyCode = false,
     type = "gdb",
     request = "launch",
     program = function()
@@ -65,6 +84,7 @@ dap.configurations.c = {
   },
   {
     name = "select and attach",
+    justMyCode = false,
     type = "gdb",
     request = "attach",
     program = function()
@@ -77,7 +97,8 @@ dap.configurations.c = {
     cwd = '${workspaceFolder}'
   },
   {
-    name = 'attach to gdbserver :1234',
+    name = 'attach to gdbserver localhost:1234',
+    justMyCode = false,
     type = 'gdb',
     request = 'attach',
     target = 'localhost:1234',
@@ -95,6 +116,7 @@ dap.configurations.rust = dap.configurations.cpp
 dap.configurations.lua = {
   {
     name = 'lua',
+    justMyCode = false,
     type = 'local-lua',
     request = 'launch',
     cwd = '${workspaceFolder}',

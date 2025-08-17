@@ -1,93 +1,47 @@
------------------------------------------------------------
--- Autocommand functions
------------------------------------------------------------
-
+-- autocommand groups
 -- Define autocommands with Lua APIs
 -- See: h:api-autocmd, h:augroup
+local augroup = vim.api.nvim_create_augroup
+local autocmd = vim.api.nvim_create_autocmd
 
-local augroup = vim.api.nvim_create_augroup   -- Create/get autocommand group
-local autocmd = vim.api.nvim_create_autocmd   -- Create autocommand
-
--- General settings:
---------------------
-
--- Highlight on yank
+-- Yank highlight
 augroup('YankHighlight', { clear = true })
 autocmd('TextYankPost', {
   group = 'YankHighlight',
   callback = function()
-    vim.highlight.on_yank({ higroup = 'IncSearch', timeout = '1000' })
+    vim.highlight.on_yank({ higroup = 'IncSearch', timeout = 1000 })
   end
 })
 
--- Remove whitespace on save
+-- Remove trailing whitespace on save
 autocmd('BufWritePre', {
-  pattern = '',
-  command = ":%s/\\s\\+$//e"
+  pattern = '*',
+  callback = function()
+    vim.cmd([[%s/\s\+$//e]])
+  end
 })
 
--- Don't auto commenting new lines
+-- Disable auto-commenting
 autocmd('BufEnter', {
-  pattern = '',
+  pattern = '*',
   command = 'set fo-=c fo-=r fo-=o'
 })
 
--- Settings for filetypes:
---------------------------
-
--- Disable line length marker
---augroup('setLineLength', { clear = true })
---autocmd('Filetype', {
-  --group = 'setLineLength',
-  --pattern = { 'text', 'markdown', 'html', 'xhtml', 'javascript', 'typescript' },
-  --command = 'setlocal cc=0'
---})
-
--- Set indentation to 2 spaces
---augroup('setIndent', { clear = true })
---autocmd('Filetype', {
-  --group = 'setIndent',
-  --pattern = { 'xml', 'html', 'xhtml', 'css', 'scss', 'javascript', 'typescript',
-    --'yaml', 'lua'
-  --},
-  --command = 'setlocal shiftwidth=2 tabstop=2'
---})
-
--- Terminal settings:
----------------------
-
--- Open a Terminal on the right tab
-autocmd('CmdlineEnter', {
-  command = 'command! Term :botright vsplit term://$SHELL'
-})
-
--- Enter insert mode when switching to terminal
+-- Terminal settings
+local term_group = augroup('TerminalSettings', { clear = true })
+vim.api.nvim_create_user_command('Term', 'botright vsplit term://$SHELL', {})
 autocmd('TermOpen', {
-  command = 'setlocal listchars= nonumber norelativenumber nocursorline',
+  group = term_group,
+  callback = function()
+    vim.opt_local.listchars = ""
+    vim.opt_local.number = false
+    vim.opt_local.relativenumber = false
+    vim.opt_local.cursorline = false
+    vim.cmd('startinsert')
+  end
 })
-
-autocmd('TermOpen', {
-  pattern = '',
-  command = 'startinsert'
-})
-
--- Close terminal buffer on process exit
 autocmd('BufLeave', {
+  group = term_group,
   pattern = 'term://*',
   command = 'stopinsert'
 })
-
-
--- treesitter highlighting workaround
--- vim.opt.foldmethod     = 'expr'
--- vim.opt.foldexpr       = 'nvim_treesitter#foldexpr()'
----WORKAROUND
---vim.api.nvim_create_autocmd({'BufEnter','BufAdd','BufNew','BufNewFile','BufWinEnter'}, {
-  --group = vim.api.nvim_create_augroup('TS_FOLD_WORKAROUND', {}),
-  --callback = function()
-    --vim.opt.foldmethod     = 'expr'
-    --vim.opt.foldexpr       = 'nvim_treesitter#foldexpr()'
-  --end
---})
----ENDWORKAROUND
-

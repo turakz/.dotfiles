@@ -124,8 +124,6 @@ export NVM_DIR="$HOME/.nvm"
 
 export EDITOR='nvim'
 
-# alias for lua lsp
-
 # append extra PATH dirs
 alias luamake=/home/harryblotter/zdev/tools/lua-language-server/3rd/luamake/luamake
 export PATH="$HOME/tools/lua-language-server/bin:$PATH"

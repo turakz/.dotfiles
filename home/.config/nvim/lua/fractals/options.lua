@@ -1,102 +1,90 @@
 -----------------------------------------------------------
--- General Neovim settings and configuration
+-- general neovim settings and configuration
 -----------------------------------------------------------
 
--- Default options are not included
--- See: https://neovim.io/doc/user/vim_diff.html
--- [2] Defaults - *nvim-defaults*
-local g = vim.g       -- Global variables
-local opt = vim.opt   -- Set options (global/buffer/windows-scoped)
+-- default options are not included
+-- see: https://neovim.io/doc/user/vim_diff.html
+-- [2] defaults - *nvim-defaults*
+local g = vim.g       -- global variables
+local opt = vim.opt   -- set options (global/buffer/windows-scoped)
 
 -----------------------------------------------------------
--- General
+-- general
 -----------------------------------------------------------
-opt.mouse = 'a'                       -- Enable mouse support
-opt.clipboard = 'unnamedplus'         -- Copy/paste to system clipboard
-opt.swapfile = false                  -- Don't use swapfile
-opt.completeopt = 'menuone,noinsert,noselect'  -- Autocomplete options
-
-g.mapleader = " "
+opt.mouse = 'a'                       -- enable mouse support
+opt.clipboard = 'unnamed,unnamedplus' -- copy/paste to system clipboard
+g.mapleader = " "                      -- leader key
 g.modelines = 2
 opt.compatible = false
 opt.cursorline = true
 opt.number = true
 opt.relativenumber = true
 opt.scrolloff = 0
-opt.spell = true
+opt.spell = false
 opt.spelllang = "en_us"
 opt.syntax = "on"
 opt.termguicolors = true
-opt.updatetime = 750
 opt.wrap = false
+opt.updatetime = 250                   -- faster updates for cursorhold, lsp
 
--- Searching
+-- searching
 opt.hlsearch = true
 opt.incsearch = true
 opt.ignorecase = true
 opt.smartcase = true
 
--- Host System Integration
-opt.mouse = "a"
-opt.clipboard = "unnamed,unnamedplus"
-
--- Disable netrw
+-- host system / filetype
 g.loaded_netrw = 1
 g.loaded_netrwPlugin = 1
 
--- Document Spacing
--- opt.colorcolumn = "80,88,120"
-opt.shiftwidth = 2
-opt.signcolumn = "yes"
-opt.expandtab = true
-opt.fixeol = true
-opt.indentexpr = ""
-opt.list = true
+-----------------------------------------------------------
+-- tabs, indentation, document formatting
+-----------------------------------------------------------
+opt.shiftwidth = 2        -- shift 2 spaces when indenting
+opt.tabstop = 2           -- 1 tab == 2 spaces
+opt.smartindent = true    -- auto-indent new lines
+opt.expandtab = true      -- use spaces instead of tabs
+opt.fixeol = true         -- ensure file ends with newline
+opt.indentexpr = ""       -- disable legacy indentexpr
+opt.list = true           -- show whitespace chars
 opt.smarttab = true
-opt.tabstop = 3
 opt.textwidth = 0
-opt.listchars = { space = '·', tab = "»»" }
+opt.listchars = {
+  space = '·',        -- normal space
+  tab = '»·',         -- tab, can show width more clearly
+  trail = '•',        -- trailing spaces
+  nbsp = '⍽',         -- non-breaking space
+  eol = '↵',         -- newline / carriage-return symbol
+}
 
--- Undo File
+-----------------------------------------------------------
+-- undo / backup
+-----------------------------------------------------------
 opt.backup = false
 opt.swapfile = false
 opt.undodir = vim.fn.expand(vim.fn.stdpath("state") .. "/undo")
 opt.undofile = true
 
+treesitter = false
 
 -----------------------------------------------------------
--- Neovim UI
+-- neovim ui
 -----------------------------------------------------------
-opt.list = true               -- Enable list mode
-opt.number = true             -- Show line number
-opt.showmatch = true          -- Highlight matching parenthesis
-opt.foldmethod = 'marker'   -- Enable folding (default)
---opt.colorcolumn = '80'      -- Line length marker at 80 columns
-opt.splitright = true       -- Vertical split to the right
-opt.splitbelow = true       -- Horizontal split to the bottom
-opt.ignorecase = true       -- Ignore case letters when search
-opt.smartcase = true        -- Ignore lowercase for the whole pattern
-opt.linebreak = true        -- Wrap on word boundary
-opt.termguicolors = true    -- Enable 24-bit RGB colors
-opt.laststatus=3            -- Set global statusline
+opt.showmatch = true                     -- highlight matching parentheses
+opt.foldmethod = 'marker'                -- folding method; consider 'expr' with treesitter
+-- opt.colorcolumn = '80'                 -- uncomment to show line length marker
+opt.splitright = true                     -- vertical splits open to the right
+opt.splitbelow = true                     -- horizontal splits open below
+opt.linebreak = true                      -- wrap on word boundaries
+opt.laststatus = 3                        -- global statusline
 
 -----------------------------------------------------------
--- Tabs, indent
+-- performance / memory
 -----------------------------------------------------------
-opt.expandtab = true        -- Use spaces instead of tabs
-opt.shiftwidth = 2          -- Shift 4 spaces when tab
-opt.tabstop = 2             -- 1 tab == 4 spaces
-opt.smartindent = true      -- Autoindent new lines
+opt.hidden = true         -- allow background buffers
+opt.lazyredraw = true     -- faster scrolling
+opt.synmaxcol = 240       -- max column for syntax highlighting
 
 -----------------------------------------------------------
--- Memory, CPU
------------------------------------------------------------
-opt.hidden = true           -- Enable background buffers
-opt.history = 100           -- Remember N lines in history
-opt.lazyredraw = true       -- Faster scrolling
-opt.synmaxcol = 240         -- Max column for syntax highlight
-opt.updatetime = 250        -- ms to wait for trigger an event
-
------------------------------------------------------------
--- Startup
+-- end of configuration
 -----------------------------------------------------------
