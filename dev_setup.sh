@@ -60,7 +60,6 @@ SOFTWARE_PACKAGES=" \
   black \
   curl \
   bash-completion \
-  build-essential \
   ccache \
   clang-format \
   clang-tidy \
@@ -81,17 +80,12 @@ SOFTWARE_PACKAGES=" \
   lld \
   lldb \
   llvm \
-  libstdc++-12-dev \
-  libc++-dev \
-  libgmp3-dev \
-  libmpfr-dev \
   libmpfr-doc \
   mold \
   neovim \
   ninja-build \
   nodejs \
   npm \
-  openjdk-8-jdk \
   ripgrep \
   shellcheck \
   shfmt \
@@ -119,9 +113,15 @@ sudo apt-get install -y $SOFTWARE_PACKAGES
 # language support
 ##################
 LANGUAGE_PACKAGES=" \
+  build-essential \
+  libstdc++-12-dev \
+  libc++-dev \
+  libgmp3-dev \
+  libmpfr-dev \
   lua5.3 \
   liblua5.3-dev \
   luarocks \
+  openjdk-8-jdk \
   pipx \
   python-is-python3 \
   python3 \

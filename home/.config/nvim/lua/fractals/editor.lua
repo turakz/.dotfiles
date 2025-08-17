@@ -41,7 +41,7 @@ end
 -----------------------------------------------------------
 
 -- clear search highlighting
-map('n', '<leader>c', ':nohl<CR>', { desc = "clear search highlight" })
+map('n', '<leader>clr', ':nohl<CR>', { desc = "clear search highlight" })
 
 -- toggle paste mode
 map('n', '<F11>', ':set invpaste paste?<CR>', { desc = "toggle paste mode" })
@@ -79,8 +79,8 @@ map('n', '<F2>', ':NvimTreeToggle<CR>', { desc = "toggle nvim tree" })
 map('n', '<F3>', ':NvimTreeCollapse<CR>', { desc = "collapse nvim tree" })
 map('n', '<F4>', ':NvimTreeFindFile<CR>', { desc = "find file in nvim tree" })
 map('n', '<S-F1>', ':NvimTreeRefresh<CR>', { desc = "refresh nvim tree" })
-map('n', '<leader>e', ':NvimTreeToggle<CR>', { desc = "toggle nvim tree with leader" })
-map('n', '<leader>c', ':NvimTreeCollapse<CR>', { desc = "collapse nvim tree with leader" })
+map('n', '<leader>eo', ':NvimTreeToggle<CR>', { desc = "toggle nvim tree with leader" })
+map('n', '<leader>ec', ':NvimTreeCollapse<CR>', { desc = "collapse nvim tree with leader" })
 
 -----------------------------------------------------------
 -- tagbar
@@ -142,9 +142,15 @@ require("which-key").setup({
 -- Updated spec format (newer which-key version)
 local wk = require("which-key")
 wk.add({
-  { "<leader>c", group = "Code" },
+  { "<leader>c", group = "Code Diag" },
   { "<leader>d", group = "Debug/DAP" },
   { "<leader>f", group = "Find (Telescope)" },
   { "<leader>g", group = "Git" },
   { "<leader>t", group = "Toggle" },
 })
+
+-- Add diagnostic mappings
+map('n', '<leader>cd', ':lua vim.diagnostic.open_float()<CR>', { desc = "show diagnostics" })
+map('n', '<leader>cdl', ':lua vim.diagnostic.setqflist()<CR>', { desc = "list all diagnostics" })
+map('n', ']d', ':lua vim.diagnostic.goto_next()<CR>', { desc = "next diagnostic" })
+map('n', '[d', ':lua vim.diagnostic.goto_prev()<CR>', { desc = "previous diagnostic" })
