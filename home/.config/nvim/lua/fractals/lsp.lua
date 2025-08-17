@@ -48,6 +48,13 @@ end
 -- capabilities
 local capabilities = require('cmp_nvim_lsp').default_capabilities()
 
+-- configure hover popup to prevent cutoff
+vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, {
+  border = "rounded",
+  max_width = 80,
+  max_height = 20,
+})
+
 -- clangd
 lspconfig.clangd.setup {
   on_attach = on_attach,
