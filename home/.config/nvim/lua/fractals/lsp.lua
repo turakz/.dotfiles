@@ -86,7 +86,10 @@ lspconfig.rust_analyzer.setup {
   settings = {
     ["rust-analyzer"] = {
       cargo = { allFeatures = true },
-      checkOnSave = { command = "clippy" },
+      checkOnSave = true,  -- Changed from object to boolean
+      check = {
+        command = "clippy"  -- Moved clippy command here
+      }
     }
   }
 }
