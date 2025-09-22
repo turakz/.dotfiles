@@ -1,7 +1,13 @@
-local cmp = require'cmp'
-local lspconfig = require'lspconfig'
+-----------------------------------------------------------
+-- lsp.lua
+-- LSP setup and keymaps
+-- integrates mason
+-- can also manually configure
+-----------------------------------------------------------
 
--- CMP setup
+local cmp = require'cmp'
+
+-- completion engine setup
 cmp.setup({
   snippet = {
     expand = function(args)
@@ -34,7 +40,7 @@ cmp.setup.cmdline(':', {
   sources = cmp.config.sources({ { name = 'path' } }, { { name = 'cmdline' } })
 })
 
--- LSP keybinds
+-- keybindings for LSPs
 local on_attach = function(client, bufnr)
   vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
   local opts = { noremap=true, silent=true, buffer=bufnr }
@@ -45,71 +51,59 @@ local on_attach = function(client, bufnr)
   vim.keymap.set('n', 'gr', vim.lsp.buf.references, opts)
 end
 
--- capabilities
+-- capabilities for nvim-cmp completion engine
 local capabilities = require('cmp_nvim_lsp').default_capabilities()
 
--- configure hover popup to prevent cutoff
+-- hover popup customization
 vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, {
   border = "rounded",
   max_width = 80,
   max_height = 20,
 })
 
--- clangd
-lspconfig.clangd.setup {
-  on_attach = on_attach,
-  capabilities = capabilities,
-  filetypes = { "c", "cpp", "objc", "objcpp", "cuda", "proto" },
-}
 
--- cmake language server
-lspconfig.cmake.setup {
-  on_attach = on_attach,
-  capabilities = capabilities,
-}
-
--- lua
-lspconfig.lua_ls.setup {
-  on_attach = on_attach,
-  capabilities = capabilities,
-}
-
--- python
-lspconfig.pyright.setup {
-  on_attach = on_attach,
-  capabilities = capabilities,
-}
-
--- flutter
+-- manual LSP configs
+-- Flutter manual setup
 require('flutter-tools').setup {
   on_attach = on_attach,
   capabilities = capabilities,
 }
 
--- rust
-lspconfig.rust_analyzer.setup {
-  on_attach = on_attach,
-  capabilities = capabilities,
-  settings = {
-    ["rust-analyzer"] = {
-      cargo = { allFeatures = true },
-      checkOnSave = true,  -- Changed from object to boolean
-      check = {
-        command = "clippy"  -- Moved clippy command here
-      }
+
+-- mason integration
+require("mason").setup({
+  ui = {
+    icons = {
+      package_installed = "✓",
+      package_pending = "➜",
+      package_uninstalled = "✗"
     }
   }
-}
+})
 
--- bash language server
-lspconfig.bashls.setup {
-  on_attach = on_attach,
-  capabilities = capabilities,
-}
+require("mason-lspconfig").setup({
+  ensure_installed = {
+    "bashls",
+    "clangd",
+    "cmake",
+    "lua_ls",
+    "rust_analyzer",
+    "powershell_es",
+    "pyright"
+  },
+  automatic_enable = true,
+})
 
--- powershell (if you use it regularly)
-lspconfig.powershell_es.setup {
-  on_attach = on_attach,
-  capabilities = capabilities,
-  bundle_path = vim.fn.stdpath("data") .. "/mason/packages/powershell-editor-services",
-}
+-- apply on_attach and capabilities to Mason-managed clients
+vim.api.nvim_create_autocmd("LspAttach", {
+  group = vim.api.nvim_create_augroup("UserLspConfig", { clear = true }),
+  callback = function(ev)
+    local client = vim.lsp.get_client_by_id(ev.data.client_id)
+    local bufnr = ev.buf
+    if client and client.server_capabilities then
+      -- Apply on_attach keymaps
+      on_attach(client, bufnr)
+      -- You could apply extra per-client config here if needed
+    end
+  end,
+})

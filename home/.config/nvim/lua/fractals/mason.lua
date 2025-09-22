@@ -8,14 +8,15 @@ require("mason").setup({
     }
   }
 })
-
+-- make sure these do not conflict with lspconfig setups
 require("mason-lspconfig").setup({
   ensure_installed = {
-    "lua_ls",
-    "pyright",
-    "clangd",
-    "rust_analyzer",
     "bashls",
-    "cmake"
+    "clangd",
+    "cmake",
+    "lua_ls",
+    "rust_analyzer",
+    "powershell_es",
+    "pyright"
   }
 })
