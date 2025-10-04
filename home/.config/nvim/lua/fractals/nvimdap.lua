@@ -14,6 +14,12 @@ require("dapui").setup{}
 -- i spent like 2 hours trying to launch dap + gdb without realizing it was working behind the scenes, i had just needed to actually toggle the dapUI on
 local dap = require("dap")
 
+-- load vscode launch.json files
+--require('dap.ext.vscode').load_launchjs(nil, {
+--  gdb = {'c', 'cpp'},
+--  cppdbg = {'c', 'cpp'}
+--})
+
 -- dap-python: https://github.com/mfussenegger/nvim-dap-python
 -- dap-python: https://github.com/nvim-dap-python
 -- venvs
@@ -26,7 +32,7 @@ require("dap-python").setup("python")
 -- must work in the shell
 table.insert(dap.configurations.python, {
   type = 'python',
-  justMyCode = false,
+  justMyCode = true,
   request = 'launch',
   name = 'cwd:dap-python',
   program = '${file}',
@@ -36,13 +42,13 @@ table.insert(dap.configurations.python, {
 
 table.insert(dap.configurations.python, {
   type = 'python',
-  justMyCode = false,
+  justMyCode = true,
   request = 'launch',
   name = 'cwd:pytest-dap-python',
   module = 'pytest',
 })
 
--- gdb adapter
+local dap = require("dap")
 dap.adapters.gdb = {
   type = "executable",
   command = "gdb",
@@ -69,54 +75,54 @@ dap.adapters["local-lua"] = {
   end,
 }
 
--- configurations
+local dap = require("dap")
 dap.configurations.c = {
   {
-    name = "launch",
-    justMyCode = false,
+    name = "Launch",
     type = "gdb",
     request = "launch",
     program = function()
-      return vim.fn.input('path to executable: ', vim.fn.getcwd() .. '/', 'file')
+      return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
+    end,
+    args = function()
+      local args = vim.fn.input("cmd line args: ")
+      return vim.split(args, " +")
     end,
     cwd = "${workspaceFolder}",
     stopAtBeginningOfMainSubprogram = false,
   },
   {
-    name = "select and attach",
-    justMyCode = false,
+    name = "Select and attach to process",
     type = "gdb",
     request = "attach",
     program = function()
-       return vim.fn.input('path to executable: ', vim.fn.getcwd() .. '/', 'file')
+      return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
     end,
     pid = function()
-       local name = vim.fn.input('Executable name (filter): ')
-       return require("dap.utils").pick_process({ filter = name })
+      local name = vim.fn.input('Executable name (filter): ')
+      return require("dap.utils").pick_process({ filter = name })
     end,
     cwd = '${workspaceFolder}'
   },
   {
-    name = 'attach to gdbserver localhost:1234',
-    justMyCode = false,
+    name = 'Attach to gdbserver :1234',
     type = 'gdb',
     request = 'attach',
     target = 'localhost:1234',
     program = function()
-       return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
+      return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
     end,
     cwd = '${workspaceFolder}'
-  },
+  }
 }
 
 dap.configurations.cpp = dap.configurations.c
-dap.configurations.rust = dap.configurations.cpp
+dap.configurations.rust = dap.configurations.c
 
 -- dap lua cfg: https://zignar.net/2023/06/10/debugging-lua-in-neovim/
 dap.configurations.lua = {
   {
     name = 'lua',
-    justMyCode = false,
     type = 'local-lua',
     request = 'launch',
     cwd = '${workspaceFolder}',

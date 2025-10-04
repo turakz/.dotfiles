@@ -18,7 +18,6 @@ return require("packer").startup(function(use)
   -- editing
   use "lukas-reineke/indent-blankline.nvim"
   use "numToStr/Comment.nvim"
-  use "tpope/vim-sleuth"
 
   -- completion engine
   use "hrsh7th/nvim-cmp"
@@ -96,7 +95,7 @@ return require("packer").startup(function(use)
   use "tpope/vim-fugitive"  -- no setup required
 
   -- sleuth
-  use "tpope/vim-sleuth"
+  --use "tpope/vim-sleuth"
 
   -- cmake-tools
   use "Civitasv/cmake-tools.nvim"

@@ -114,6 +114,12 @@ map('n', '<leader>ds', dap.step_over, { desc = "step over" })
 map('n', '<leader>di', dap.step_into, { desc = "step into" })
 map('n', '<leader>do', dap.step_out, { desc = "step out" })
 map('n', '<leader>dq', dap.terminate, { desc = "terminate" })
+map('n', '<leader>dh', function() require('dap.ui.widgets').hover() end, { desc = "hover/inspect variable" })
+map('n', '<leader>de', function() require('dap').repl.open() end, { desc = "open debug repl" })
+map('n', '<leader>dv', function()
+  local widgets = require('dap.ui.widgets')
+  widgets.centered_float(widgets.scopes)
+end, { desc = "view scopes" })
 
 -- dap function keys
 map('n', '<F5>', dap.continue, { desc = "dap continue" })
