@@ -63,6 +63,39 @@ vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, {
 
 
 -- manual LSP configs
+--require("lspconfig").mojo.setup({
+--    cmd = { 'mojo-lsp-server' }, -- Command to start the Mojo LSP server
+--    root_dir = require("lspconfig.util").find_git_ancestor, -- Detect project root using Git
+--    single_file_support = true, -- Enable LSP features for single Mojo files
+--    filetypes = { "mojo", "*.🔥" }, -- File types associated with Mojo
+--    on_attach = on_attach,
+--    capabilities = capabilities,
+--})
+
+local function get_root_dir(fname)
+  return vim.fs.dirname(vim.fs.find({ ".git" }, { upward = true, path = fname })[1])
+end
+
+-- define a custom vimlspconfig for mojo
+local mojo_config = {
+  name = "mojo",                     -- must be a string
+  cmd = { "mojo-lsp-server" },
+  root_dir = get_root_dir(vim.api.nvim_buf_get_name(0)),
+  filetypes = { "mojo", "🔥" },      -- avoid using "*.🔥", just the literal filetype name
+  single_file_support = true,
+  on_attach = on_attach,
+  capabilities = capabilities,
+}
+
+-- Auto-start for mojo files
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = { "mojo", "🔥" },
+  callback = function()
+    vim.lsp.start(mojo_config)
+  end,
+})
+
+-- lspconfig: DEPRECATED
 -- Flutter manual setup
 require('flutter-tools').setup {
   on_attach = on_attach,
@@ -70,6 +103,7 @@ require('flutter-tools').setup {
 }
 
 
+-- lspconfig: PREFERRED
 -- mason integration
 require("mason").setup({
   ui = {

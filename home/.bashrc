@@ -137,3 +137,5 @@ source ~/.local/share/blesh/ble.sh
 # prompt
 export STARSHIP_CONFIG="${HOME}/.dotfiles/home/.config/starship/starship.toml"
 eval "$(starship init bash)"
+# pixi/mojo
+export PATH="/home/fractals/.pixi/bin:$PATH"

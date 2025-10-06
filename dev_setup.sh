@@ -272,6 +272,17 @@ else
     echo -e "${GREEN}fractals::${NOFMT}${CYAN}rust${NOFMT} ${ORANGE}already installed${NOFMT}"
 fi
 
+#############
+# pixie/mojo
+############
+echo -e "\n${GREEN}fractals::${NOFMT}${CYAN}installing pixie package manager for mojo dev...${NOFMT}"
+if ! hash pixie 2> /dev/null; then
+  curl -fsSL https://pixi.sh/install.sh | sh
+  echo 'default-channels = ["https://conda.modular.com/max-nightly", "conda-forge"]' >> ${HOME}/.pixi/config.toml
+else
+  echo -e "${GREEN}fractals::${NOFMT}${CYAN}pixie${NOFMT} ${ORANGE} already installed${NOFMT}"
+fi
+
 ##############################################
 # ble.sh: https://github.com/akinomyoga/ble.sh
 ##############################################

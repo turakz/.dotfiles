@@ -1,12 +1,15 @@
-# Design Dojo - Interactive Pattern Learning
+# Design Dojo - Interactive Software Engineering Pattern Learning
 
 ## Purpose
-This is an interactive learning environment where you practice identifying, understanding, and applying software design patterns. Think of it as a "programming gym" where you build fluency with the fundamental building blocks that professional engineers use daily.
+This is an interactive learning environment where you practice identifying, understanding, and applying software design patterns.
+Think of it as a "programming gym" where you build fluency with the fundamental building blocks that professional engineers use daily.
 
-**Philosophy**: Patterns aren't academic exercises - they're practical tools for creating **testable, decoupled, maintainable** systems. We follow principles from *Patterns in the Machine*: design for testability, abstract dependencies, and solve real problems.
+**Philosophy**: Patterns aren't academic exercises - they're practical tools for creating **testable, decoupled, maintainable** systems.
+We follow principles from *Patterns in the Machine*: design for testability, abstract dependencies, and solve real problems.
 
 ## Your Learning Goal
-> "I have concepts of what I need to build, but struggle to express them in code. I want fluency with established design patterns and industry 'lego blocks' so I can translate ideas into clean, maintainable implementations."
+> "I have concepts of what I need to build, but struggle to express them in code. I want fluency with established design patterns and industry
+'lego blocks' so I can translate ideas into clean, maintainable implementations."
 
 ---
 
@@ -108,7 +111,7 @@ Based on successful sessions:
 - **Clear pain points** - giant if/else, can't test, can't extend
 - **~20-30 lines** - small enough to refactor in 15 minutes
 - **Immediate testability win** - show test before/after
-- **Find it in their code** - "you already use this in alchemy!"
+- **Find it in their code if it exists** - "you already use this in alchemy!"
 
 ### ❌ DON'T
 - Abstract examples (FooFactory, BarStrategy) - use real domains
@@ -153,6 +156,16 @@ Systematic tour of essential patterns grouped by purpose.
 - **Dependency Injection** - Invert control, inject dependencies for testability
 - **Pipeline Pattern** - Chain processing stages
 - **Layered Architecture** - Separate concerns (presentation, business logic, data)
+
+#### Thread/Concurrency/Parallelization
+- **Thrad Pools**
+- **Active Objects/Monitor Objects**
+- **Async-Await** - Synchronization patterns and thread management.
+- **Future and Producer/Consumer** - Future and Promises pattern
+- **Mutexes and Semaphores** - Read/Write locks
+- **Barrier Pattern**
+- **Thread Safety** - Learning how to deal with and managage common pitfalls to concurrency
+such as deadlocks, data-races/race-conditions, synchronization
 
 ### Track 2: Testability-First (PITM Approach)
 Learn patterns by solving testability problems:
@@ -443,6 +456,9 @@ Patterns build on each other. This curriculum introduces them in order of:
 17. **Proxy Pattern** - Control access to objects
 18. **Singleton Pattern** - Single instance (and alternatives)
 
+#### Phase 7: Concurrency and Multi-threading
+TODO(fractals)
+
 ### Curriculum Commands
 
 **To start or continue the curriculum:**
@@ -500,25 +516,122 @@ I'll help you identify which pattern(s) solve it.
 
 ---
 
-## Ready to Begin?
+## Strategies for Managing Cognitive Load
 
-**Just say one of these:**
-- `Start the curriculum`
-- `Surprise me`
-- Or describe a specific pattern/problem you want to learn
+When implementing patterns, you'll juggle multiple concepts simultaneously (class hierarchies, interfaces, state management, C++ syntax).
+Expert programmers don't hold all this in their head - they use external strategies.
 
----
+### Strategy 1: Externalize Your Memory
 
-## Session Log
+Write down class responsibilities before coding. This offloads working memory.
 
-### Session History
--
+**Example sketch:**
+```
+TextBuffer (receiver)
+  - content: string
+  - insert/delete/replace methods
 
-### Key Insights
--
+Command interface
+  - execute()
+  - undo()
 
-### Patterns to Revisit
--
+InsertTextCmd (concrete command)
+  - needs: TextBuffer&, position, text
+  - execute: buffer.insert()
+  - undo: buffer.erase()
+
+Editor (invoker)
+  - has: TextBuffer, history vector, index
+  - executeCmd()
+  - undo()
+  - redo()
+```
+
+Spend 2-3 minutes sketching structure before writing code. This is your external memory.
+
+### Strategy 2: Build One Piece at a Time
+
+Don't implement all classes before testing. Build incrementally:
+
+**Example progression:**
+```cpp
+// Step 1: Just receiver + one command
+TextBuffer buffer;
+InsertTextCmd cmd(buffer, 0, "hello");
+cmd.execute();  // test
+cmd.undo();     // test
+
+// Step 2: Add invoker with execute
+Editor editor;
+editor.executeCmd(...);
+
+// Step 3: Add undo/redo
+editor.undo();
+editor.redo();
+
+// Step 4: Add more command types
+// Step 5: Add additional features
+```
+
+Test each piece before moving to the next. Incremental development reduces cognitive load.
+
+### Strategy 3: Pattern Templates (Mental Models)
+
+After 3-5 implementations, you develop mental templates. Instead of remembering every detail, you fill in blanks:
+
+**Command Pattern Template:**
+```
+Components needed:
+  - Command interface (execute, undo)
+  - Concrete commands (store receiver ref, params, prev state)
+  - Receiver (actual object being manipulated)
+  - Invoker (executes commands, stores history)
+```
+
+**Fill in the blanks for your domain:**
+- Receiver = `TextBuffer`
+- Commands = `InsertTextCmd`, `DeleteTextCmd`, `ReplaceTextCmd`
+- Invoker = `Editor`
+
+**Fluency timeline:**
+- 1st implementation: "Constantly referencing examples"
+- 2nd-3rd: "Remember structure, checking details"
+- 5th: "Implement from memory, checking syntax"
+- 10th: "Automatic, thinking about design tradeoffs"
+
+You build the template through repetition - it takes 3-5 implementations to internalize.
+
+### Strategy 4: Copy-Paste-Modify
+
+Expert programmers copy existing code constantly. After writing one concrete command, copy it for the next:
+
+```cpp
+// Write InsertTextCmd first
+class InsertTextCmd : public EditorCommand {
+  TextBuffer& buffer;
+  size_t position;
+  string text;
+
+  void execute() override { buffer.insert(position, text); }
+  void undo() override { buffer.erase(position, text.length()); }
+};
+
+// Copy structure for DeleteTextCmd
+class DeleteTextCmd : public EditorCommand {
+  TextBuffer& buffer;
+  size_t position;
+  size_t length;       // changed: store length instead of text
+  string deletedText;  // changed: capture deleted text
+
+  void execute() override {
+    deletedText = buffer.substr(position, length);  // changed
+    buffer.erase(position, length);
+  }
+  void undo() override {
+    buffer.insert(position, deletedText);  // changed
+  }
+};
+```
 
 ---
 
