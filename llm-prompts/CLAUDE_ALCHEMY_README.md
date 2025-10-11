@@ -9,41 +9,50 @@ and perform transformations like struct alignment optimization and boilerplate g
 ## File Structure Reference
 ```
 alchemy/
-├── inc/                          # Public interfaces
-│   ├── analyzer.hpp              # Pipeline interface + StructAlignmentPipeline
+├── inc/                          # public interfaces
+│   ├── analyzer.hpp              # StructAlignmentOperation (analyze + generate recipes)
 │   ├── app.hpp                   # App orchestrator
-│   ├── cli.hpp                   # CLI interface
-│   ├── clang_tool_factory.hpp    # ClangTool creation (unused in v1.0)
-│   ├── core.hpp                  # Result<T> and core types
-│   ├── datamodel.hpp             # DataModel + SAlignMetrics
-│   ├── discovery.hpp             # File discovery
-│   ├── metrics_reporter.hpp      # Reporter<T> interface
-│   ├── parsing_requirements.hpp  # ParsingRequirements struct
-│   ├── parsing_rule.hpp          # ParsingRule base (unused in v1.0)
-│   ├── rule_registry.hpp         # Rule registry (unused in v1.0)
-│   ├── salign_reporter.hpp       # SAlignReporter implementation
+│   ├── app_context.hpp           # AppContext + Metrics variant (SAlignMetrics, CmockMetrics, CppunitMetrics)
+│   ├── cli.hpp                   # CLI interface + ParsedOptions
+│   ├── core.hpp                  # Result<T> monad + core types
+│   ├── discovery.hpp             # file discovery with glob patterns
+│   ├── metrics_reporter.hpp      # metrics variant dispatcher (reportMetrics)
+│   ├── operation.hpp             # Operation interface + Recipe variant (RefactorRecipe, CodeGenRecipe)
+│   ├── parser.hpp                # parser interface + ParsedArtifacts + ParseResults
+│   ├── pipeline.hpp              # stateless pipeline functions (parse, executeOperations)
+│   ├── salign_reporter.hpp       # SAlignReporter (static functions, three-level display)
 │   ├── struct_parsing_rule.hpp   # StructParsingRule + StructDef + FieldDef
-│   └── transmute.hpp             # Transmutation interface
-├── src/                          # Implementations
-│   ├── analyzer.cpp              # StructAlignmentPipeline implementation
-│   ├── app.cpp                   # App orchestration
+│   └── transmute.hpp             # transmutation interface (applyRecipes, applyRefactor, applyCodeGen)
+├── src/                          # implementations
+│   ├── analyzer.cpp              # StructAlignmentOperation implementation
+│   ├── app.cpp                   # App orchestration (LLVM setup, pipeline execution)
 │   ├── cli.cpp                   # CLI parsing
-│   ├── datamodel.cpp             # DataModel methods
-│   ├── discovery.cpp             # File discovery implementation
+│   ├── discovery.cpp             # file discovery with threading support
+│   ├── metrics_reporter.cpp      # metrics variant dispatcher (separates by type, calls reporters)
+│   ├── parser.cpp                # parser implementation (runs ClangTool with parsing rules)
+│   ├── pipeline.cpp              # pipeline functions (requirement gathering, operation execution)
 │   ├── salign_reporter.cpp       # SAlignReporter implementation
-│   ├── struct_parsing_rule.cpp   # StructParsingRule implementation
-│   └── transmute.cpp             # Transmutation implementation
+│   ├── struct_parsing_rule.cpp   # StructParsingRule implementation (Clang AST matching)
+│   └── transmute.cpp             # recipe variant dispatcher + type-specific functions
 ├── tests/
-│   ├── unit/                     # 68 unit tests
-│   ├── integration/              # 9 integration tests
-│   └── utils.hpp/utils.cpp       # Shared test utilities
-├── design/                       # Architecture documentation
-│   ├── alchemy-dev-v1.md         # This document
-│   ├── component-diagrams.md     # Component architecture diagrams
-│   ├── sequence-diagrams.md      # Interaction flows
-│   └── plugin-architecture.md    # Future plugin system design
-├── main.cpp                      # Entry point
-└── CMakeLists.txt                # Build configuration
+│   ├── unit/                     # 98 unit tests
+│   │   ├── test_analyzer.cpp     # analyzer tests
+│   │   ├── test_cli.cpp          # CLI parsing tests
+│   │   ├── test_discovery.cpp    # file discovery tests
+│   │   ├── test_salign_pipeline.cpp  # salign operation tests
+│   │   └── test_transmute.cpp    # transmutation tests (+ 4 codegen stubs)
+│   ├── integration/              # 11 integration tests (includes dry-run test)
+│   │   └── test_salign.cpp       # end-to-end salign tests
+│   ├── performance/              # performance benchmarks
+│   └── utils.hpp/utils.cpp       # test utilities (MockBuildConfig struct, helpers)
+├── design/                       # architecture documentation
+│   ├── component-diagrams.md     # component architecture (v3.0 - variant architecture)
+│   ├── sequence-diagrams.md      # interaction flows (v6.0 - variant dispatchers)
+│   └── plugin-architecture.md    # future plugin system design
+├── CURRENT_CONTEXT.md            # current state summary (variant refactor complete)
+├── main.cpp                      # entry point
+├── Makefile                      # build targets (test.unit, test.integration, etc.)
+└── CMakeLists.txt                # build configuration
 ```
 
 
@@ -78,10 +87,13 @@ and other generated responses so that i can review them and contribute
 ## Key Project Context
 - **Language**: C++17 with Clang/LLVM APIs
 - **Current scope**: C header files (.h extensions) for struct analysis
-- **Architecture**: App Orchestrator → Discovery → Parsing → Analysis → Recipes -> Transmutation pipelines
-- **Error handling**: Custom Result<T> type (see `inc/core.hpp`)
+- **Architecture**: App → Discovery → Pipeline (parse, executeOperations) → Transmute (variant dispatchers) → Report (variant dispatchers)
+- **Error handling**: Custom Result<T> monad (see `inc/core.hpp`)
 - **Build system**: CMake with proper dependency management
-- **Plugin System**: Available in `inc/analyzer.hpp` (future extensibility option, ignore for now)
+- **Variant architecture**: Recipe = variant<RefactorRecipe, CodeGenRecipe>, Metrics = variant<SAlignMetrics, CmockMetrics, CppunitMetrics>
+- **Static polymorphism**: std::variant + std::visit for compile-time dispatch (no vtables, zero heap allocations)
+- **Current features**: --salign (struct alignment optimization), --dry-run (preview without writing files)
+- **Test coverage**: 98 unit tests + 11 integration tests = 109 total (includes 4 codegen stubs)
 
 ## Project files
 
