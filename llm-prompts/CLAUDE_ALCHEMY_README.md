@@ -8,58 +8,160 @@ and perform transformations like struct alignment optimization and boilerplate g
 
 ## File Structure Reference
 ```
-alchemy/
-├── inc/                          # public interfaces
-│   ├── analyzer.hpp              # StructAlignmentOperation (analyze + generate recipes)
-│   ├── app.hpp                   # App orchestrator
-│   ├── app_context.hpp           # AppContext + Metrics variant (SAlignMetrics, CmockMetrics, CppunitMetrics)
-│   ├── cli.hpp                   # CLI validation architecture (Validator, CliInputs, feature traits)
-│   ├── core.hpp                  # Result<T> monad + core types
-│   ├── discovery.hpp             # file discovery with glob patterns
-│   ├── metrics_reporter.hpp      # metrics variant dispatcher (reportMetrics)
-│   ├── operation.hpp             # Operation interface + Recipe variant (RefactorRecipe, CodeGenRecipe)
-│   ├── parser.hpp                # parser interface + ParsedArtifacts + ParseResults
-│   ├── pipeline.hpp              # stateless pipeline functions (parse, executeOperations)
-│   ├── salign_reporter.hpp       # SAlignReporter (static functions, three-level display)
-│   ├── struct_parsing_rule.hpp   # StructParsingRule + StructDef + FieldDef
-│   └── transmute.hpp             # transmutation interface (applyRecipes, applyRefactor, applyCodeGen)
-├── src/                          # implementations
-│   ├── analyzer.cpp              # StructAlignmentOperation implementation
-│   ├── app.cpp                   # App orchestration (LLVM setup, pipeline execution)
-│   ├── cli.cpp                   # CLI parsing (LLVM adapter + Validator implementation)
-│   ├── discovery.cpp             # file discovery with threading support
-│   ├── metrics_reporter.cpp      # metrics variant dispatcher (separates by type, calls reporters)
-│   ├── parser.cpp                # parser implementation (runs ClangTool with parsing rules)
-│   ├── pipeline.cpp              # pipeline functions (requirement gathering, operation execution)
-│   ├── salign_reporter.cpp       # SAlignReporter implementation
-│   ├── struct_parsing_rule.cpp   # StructParsingRule implementation (Clang AST matching)
-│   └── transmute.cpp             # recipe variant dispatcher + type-specific functions
+ alchemy/
+├── inc/                                    # public interfaces (semantically organized)
+│   ├── app/                                # application layer (top-level orchestration)
+│   │   ├── app.hpp                         # App orchestrator (creates parser, operations, executes pipeline)
+│   │   ├── app_context.hpp                 # AppConfig (BuildConfig, SourceInventory), ParsedArtifacts, Metrics
+│   │   ├── color.hpp                       # ANSI color codes for terminal output
+│   │   └── core.hpp                        # Result<T> monad + core types
+│   ├── files/                              # file system operations
+│   │   └── discovery.hpp                   # file discovery with glob patterns + threading
+│   ├── parsing/                            # parsing layer (all parsing-related concerns)
+│   │   ├── analysis/                       # analysis operations (struct alignment, etc.)
+│   │   │   └── analyzer.hpp                # StructAlignmentOperation (analyze + generate RefactorRecipes)
+│   │   ├── codegen/                        # code generation operations (test generation)
+│   │   │   ├── code_generator.hpp          # CodeGenerator interface (strategy pattern for test generation)
+│   │   │   ├── cunit_generator.hpp         # CUnitGenerator (concrete CUnit test generator)
+│   │   │   └── cunit_test_operation.hpp    # CUnitTestOperation (ParsingOperation for CUnit codegen)
+│   │   ├── clang_parser.hpp                # ClangParser (libclang integration via ClangTool)
+│   │   ├── clang_parsing_rules.hpp         # parsing rules abstractions
+│   │   ├── clang_struct_extractor.hpp      # ClangStructExtractor (AST traversal for structs)
+│   │   ├── clang_struct_parsing_rule.hpp   # StructParsingRule (Clang AST matching + StructDef/FieldDef)
+│   │   ├── cli.hpp                         # CLI validation (Validator, ParsedOptions, feature traits)
+│   │   ├── operation.hpp                   # ParsingOperation interface + Recipe variant (RefactorRecipe, CodeGenRecipe)
+│   │   ├── parser.hpp                      # ParsingRuleAdapter interface + ParsedArtifacts + ParseResults
+│   │   └── parsing_requirements.hpp        # ParsingRequirements (what operations need from parser)
+│   ├── pipeline/                           # pipeline layer (data transformation orchestration)
+│   │   └── pipeline.hpp                    # stateless pipeline functions (runParser, executeOperations, transmuteAllRecipes, execute)
+│   ├── reporting/                          # reporting layer (metrics output)
+│   │   ├── metrics_reporter.hpp            # metrics variant dispatcher (reportMetrics)
+│   │   └── salign_reporter.hpp             # SAlignReporter (static functions, three-level display)
+│   └── transmute/                          # transmutation layer (recipe application)
+│       └── transmute.hpp                   # transmutation interface (applyRecipes, applyRefactor, applyCodeGen)
+├── src/                                    # implementations (mirrors inc/ structure)
+│   ├── app/
+│   │   ├── app.cpp                         # App implementation (parser creation, pipeline execution, metrics reporting)
+│   │   └── app_context.cpp                 # ParsedArtifacts implementation
+│   ├── files/
+│   │   └── discovery.cpp                   # file discovery implementation with threading support
+│   ├── parsing/
+│   │   ├── analysis/
+│   │   │   └── analyzer.cpp                # StructAlignmentOperation implementation
+│   │   ├── codegen/
+│   │   │   ├── cunit_generator.cpp         # CUnitGenerator stub implementation
+│   │   │   └── cunit_test_operation.cpp    # CUnitTestOperation stub implementation
+│   │   ├── clang_parser.cpp                # ClangParser implementation (ClangTool runner)
+│   │   ├── clang_struct_extractor.cpp      # ClangStructExtractor implementation (AST callbacks)
+│   │   ├── clang_struct_parsing_rule.cpp   # StructParsingRule implementation (field extraction)
+│   │   └── cli.cpp                         # CLI parsing (LLVM adapter + Validator implementation)
+│   ├── pipeline/
+│   │   └── pipeline.cpp                    # pipeline functions (requirement gathering, operation execution, transmutation)
+│   ├── reporting/
+│   │   ├── metrics_reporter.cpp            # metrics variant dispatcher (separates by type, calls reporters)
+│   │   └── salign_reporter.cpp             # SAlignReporter implementation
+│   └── transmute/
+│       └── transmute.cpp                   # recipe variant dispatcher + type-specific functions
 ├── tests/
-│   ├── unit/                     # unit tests (35 CLI + others)
-│   │   ├── test_analyzer.cpp     # analyzer tests
-│   │   ├── test_cli.cpp          # CLI validation tests (black-box via Validator::validate)
-│   │   ├── test_discovery.cpp    # file discovery tests
-│   │   ├── test_salign_pipeline.cpp  # salign operation tests
-│   │   └── test_transmute.cpp    # transmutation tests (+ 4 codegen stubs)
-│   ├── integration/              # 11 integration tests (bypasses CLI, uses mocking)
-│   │   └── test_salign.cpp       # end-to-end salign tests
-│   ├── performance/              # performance benchmarks
-│   └── utils.hpp/utils.cpp       # test utilities (createCliInputs, MockBuildConfig)
-├── design/                       # architecture documentation
-│   ├── component-diagrams.md     # component architecture
-│   ├── sequence-diagrams.md      # interaction flows
-│   └── plugin-architecture.md    # future plugin system design
-├── CURRENT_CONTEXT_NOTES.md      # CLI refactor documentation (semantic groups + validation)
-├── main.cpp                      # entry point
-├── Makefile                      # build targets (test.unit, test.integration, etc.)
-└── CMakeLists.txt                # build configuration
+│   ├── data/                               # test data files
+│   │   └── integration/                    # integration test data
+│   │       ├── HelloWorld.h                # sample struct definitions
+│   │       └── HelloWorldEmpty.h           # empty file test case
+│   ├── unit/                               # unit tests
+│   │   ├── test_app_context.cpp            # ParsedArtifacts tests
+│   │   ├── test_clang_parser.cpp           # ClangParser tests
+│   │   ├── test_clang_struct_extractor.cpp # ClangStructExtractor tests
+│   │   ├── test_clang_struct_parsing_rule.cpp # StructParsingRule tests
+│   │   ├── test_cli.cpp                    # CLI validation tests (black-box via Validator::validate)
+│   │   ├── test_core_types.cpp             # Result<T> monad tests
+│   │   ├── test_discovery.cpp              # file discovery tests
+│   │   ├── test_parsed_artifacts.cpp       # ParsedArtifacts integration tests
+│   │   ├── test_pipeline.cpp               # pipeline function tests
+│   │   ├── test_salign_pipeline.cpp        # salign operation tests
+│   │   └── test_transmute.cpp              # transmutation tests (+ codegen stubs)
+│   ├── integration/                        # integration tests (end-to-end)
+│   │   └── test_salign.cpp                 # salign end-to-end tests
+│   ├── performance/                        # performance benchmarks
+│   │   ├── test_salign.cpp                 # basic performance tests
+│   │   ├── test_salign_complexity.cpp      # complexity scaling tests
+│   │   ├── test_salign_parsing.cpp         # parsing performance tests
+│   │   ├── test_salign_realistic.cpp       # realistic workload tests
+│   │   └── test_salign_stress.cpp          # stress tests
+│   └── utils.hpp/utils.cpp                 # test utilities (createCliInputs, mock helpers)
+├── design/                                 # architecture documentation
+│   ├── CLI_IDEA_LAND.md                    # CLI design exploration
+│   ├── alchemy-architecture.dot            # graphviz architecture diagram
+│   ├── alchemy-dev-v1.md                   # v1 development notes
+│   ├── alchemy-dev-v2.md                   # v2 development notes
+│   ├── component-diagrams.md               # component architecture
+│   ├── plugin-architecture.md              # future plugin system design
+│   └── sequence-diagrams.md                # interaction flows
+├── main.cpp                                # entry point
+├── Makefile                                # build targets (test.unit, test.integration, etc.)
+└── CMakeLists.txt                          # build configuration
 ```
+
+## Architectural Layers
+
+The project is organized into semantic layers with clear dependency boundaries:
+
+### Layer Structure (Top → Bottom)
+```
+app/          Application layer - top-level orchestration
+  ↓           - Creates parser backend (ClangParser)
+  ↓           - Creates operations based on enabled features
+  ↓           - Executes pipeline
+  ↓           - Reports metrics (I/O responsibility)
+  ↓
+pipeline/     Pipeline layer - stateless data transformation
+  ↓           - Gathers parsing requirements from operations
+  ↓           - Runs parser to create ParsedArtifacts
+  ↓           - Executes operations (pass artifacts by const ref)
+  ↓           - Transmutes recipes
+  ↓           - Returns results + metrics (no I/O)
+  ↓
+parsing/      Parsing layer - source analysis and operation execution
+  ↓           - Parser implementations (ClangParser, future RustParser, etc.)
+  ↓           - ParsingOperation interface + concrete operations
+  ↓           - analysis/: RefactorRecipe generation (StructAlignmentOperation)
+  ↓           - codegen/: CodeGenRecipe generation (CUnitTestOperation)
+  ↓           - CLI parsing and validation
+  ↓
+transmute/    Transmutation layer - recipe application (file mutations)
+  ↓           - applyRecipes: variant dispatcher (RefactorRecipe | CodeGenRecipe)
+  ↓           - applyRefactor: byte-level in-place file modifications
+  ↓           - applyCodeGen: generate and write new files
+  ↓
+reporting/    Reporting layer - output formatting
+  ↓           - metrics_reporter: variant dispatcher for metrics
+  ↓           - salign_reporter: struct alignment metrics formatting
+  ↓
+files/        File system layer - discovery and path operations
+```
+
+### Key Architectural Properties
+
+1. **Separation of Concerns**:
+   - `app/` handles I/O (file writing, console output, metrics reporting)
+   - `pipeline/` handles data transformation (pure business logic, no I/O)
+   - `parsing/` handles source analysis (reading, not writing)
+   - `transmute/` handles file mutations (writing only)
+
+2. **Dependency Flow**:
+   - High-level depends on low-level (app → pipeline → parsing/transmute)
+   - Core types (`app/core.hpp`) used across all layers
+   - `ParsedArtifacts` passed by const reference (no copying)
+
+3. **Removed Dependencies**:
+   - Pipeline no longer depends on reporting (metrics collection only)
+   - High-level system parts mostly free of implementation dependencies
+   - Clear boundaries enable testability and future refactoring
 
 ## Project files
 
 - please see the project Makefile for targets
-- headers can be found under `inc/`
-- source can be found under `src/`
+- headers can be found under `inc/` (semantically organized by layer)
+- source can be found under `src/` (mirrors inc/ structure)
 - design documents under `design/`
 - tests under `tests/unit` and `tests/integration` respectively
 - prefer 2 spaces for indentation
@@ -104,15 +206,18 @@ that can reasonably be anticipated
 
 ## Key Project Context
 - **Language**: C++17 with Clang/LLVM APIs
-- **Current scope**: C header files (.h extensions) for struct analysis
-- **Architecture**: CLI (parseCli → Validator) → App → Discovery → Pipeline (parse, executeOperations) → Transmute (variant dispatchers) → Report (variant dispatchers)
-- **CLI Architecture**: Semantic grouping (PathOptions, FeatureFlags, BuildConfig) + namespace-based feature traits + centralized Validator
+- **Current scope**: C header files (.h extensions) for struct analysis and test generation
+- **Architecture**: CLI (parseCli → Validator) → App (orchestration + metrics reporting) → Discovery → Pipeline (parse → executeOperations → transmute) → Transmute (variant dispatchers)
+- **CLI Architecture**: Semantic grouping (PathOptions, FeatureFlags, BuildConfig) + namespace-based feature traits + centralized Validator → produces ParsedOptions
 - **Error handling**: Custom Result<T> monad (see `inc/core.hpp`)
 - **Build system**: CMake with proper dependency management
 - **Variant architecture**: Recipe = variant<RefactorRecipe, CodeGenRecipe>, Metrics = variant<SAlignMetrics, CmockMetrics, CppunitMetrics>
 - **Static polymorphism**: std::variant + std::visit for compile-time dispatch (no vtables, zero heap allocations)
-- **Current features**: --salign (struct alignment optimization), --dry-run (preview without writing files)
-- **Test coverage**: unit tests (35 CLI + others) + 11 integration tests + performance/stress tests
+- **Strategy pattern**: CodeGenerator interface with framework-specific implementations (CUnitGenerator, GTestGenerator, etc.)
+- **Separation of concerns**: Pipeline handles data transformation (no I/O), App handles I/O and reporting
+- **Current features**: --salign (struct alignment optimization), --cunit (CUnit test generation stub), --dry-run (preview without writing files)
+- **Test coverage**: 150 unit tests + 11 integration tests + performance/stress tests
+- **Recent refactoring**: v2.2 - moved metrics reporting from pipeline to app layer, zero-cost abstraction validated with valgrind
 
 ## Notes
 - please read `pitm.md` for context on what overall software engineering practices to reinforce in my learning
