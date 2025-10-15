@@ -64,37 +64,37 @@ vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, {
 
 
 -- manual LSP configs
---require("lspconfig").mojo.setup({
---    cmd = { 'mojo-lsp-server' }, -- Command to start the Mojo LSP server
---    root_dir = require("lspconfig.util").find_git_ancestor, -- Detect project root using Git
---    single_file_support = true, -- Enable LSP features for single Mojo files
---    filetypes = { "mojo", "*.🔥" }, -- File types associated with Mojo
---    on_attach = on_attach,
---    capabilities = capabilities,
---})
 
-local function get_root_dir(fname)
-  return vim.fs.dirname(vim.fs.find({ ".git" }, { upward = true, path = fname })[1])
-end
+-- mojo
+vim.filetype.add({
+    extension = {
+        mojo = 'mojo',
+        ['🔥'] = 'mojo',
+    },
+})
 
--- define a custom vimlspconfig for mojo
-local mojo_config = {
-  name = "mojo",                     -- must be a string
-  cmd = { "mojo-lsp-server" },
-  root_dir = get_root_dir(vim.api.nvim_buf_get_name(0)),
-  filetypes = { "mojo", "🔥" },      -- avoid using "*.🔥", just the literal filetype name
-  single_file_support = true,
-  on_attach = on_attach,
-  capabilities = capabilities,
+vim.lsp.config.mojo = {
+    cmd = { vim.fn.getcwd() .. '/.pixi/envs/default/bin/mojo-lsp-server' },
+    filetypes = { 'mojo' },
+    root_markers = { 'pixi.toml', 'pyproject.toml', '.git' },
+    single_file_support = true,
 }
 
--- Auto-start for mojo files
-vim.api.nvim_create_autocmd("FileType", {
-  pattern = { "mojo", "🔥" },
-  callback = function()
-    vim.lsp.start(mojo_config)
-  end,
+vim.lsp.enable('mojo')
+
+vim.api.nvim_create_autocmd('LspAttach', {
+    callback = function(args)
+        local client = vim.lsp.get_client_by_id(args.data.client_id)
+        if client and client.name == 'mojo' then
+            vim.keymap.set("n", "<leader>fmt", function()
+                local file = vim.fn.expand("%:p")
+                vim.cmd("silent !mojo format --quiet " .. vim.shellescape(file))
+                vim.cmd("edit!")
+            end, { buffer = args.buf, desc = "Format Mojo file" })
+        end
+    end,
 })
+
 
 -- lspconfig: DEPRECATED
 -- Flutter manual setup

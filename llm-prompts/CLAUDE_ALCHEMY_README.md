@@ -12,51 +12,58 @@ and perform transformations like struct alignment optimization and boilerplate g
 ├── inc/                                    # public interfaces (semantically organized)
 │   ├── app/                                # application layer (top-level orchestration)
 │   │   ├── app.hpp                         # App orchestrator (creates parser, operations, executes pipeline)
-│   │   ├── app_context.hpp                 # AppConfig (BuildConfig, SourceInventory), ParsedArtifacts, Metrics
+│   │   ├── app_context.hpp                 # AppConfig (BuildConfig, SourceInventory), Metrics variant
 │   │   ├── color.hpp                       # ANSI color codes for terminal output
 │   │   └── core.hpp                        # Result<T> monad + core types
+│   ├── cli/                                # command-line interface
+│   │   └── cli.hpp                         # CLI parsing and validation (Validator, ParsedOptions, feature traits)
 │   ├── files/                              # file system operations
 │   │   └── discovery.hpp                   # file discovery with glob patterns + threading
-│   ├── parsing/                            # parsing layer (all parsing-related concerns)
-│   │   ├── analysis/                       # analysis operations (struct alignment, etc.)
-│   │   │   └── analyzer.hpp                # StructAlignmentOperation (analyze + generate RefactorRecipes)
-│   │   ├── codegen/                        # code generation operations (test generation)
-│   │   │   ├── code_generator.hpp          # CodeGenerator interface (strategy pattern for test generation)
-│   │   │   ├── cunit_generator.hpp         # CUnitGenerator (concrete CUnit test generator)
-│   │   │   └── cunit_test_operation.hpp    # CUnitTestOperation (ParsingOperation for CUnit codegen)
+│   ├── parsing/                            # parsing layer (source → structured data)
 │   │   ├── clang_parser.hpp                # ClangParser (libclang integration via ClangTool)
 │   │   ├── clang_parsing_rules.hpp         # parsing rules abstractions
 │   │   ├── clang_struct_extractor.hpp      # ClangStructExtractor (AST traversal for structs)
 │   │   ├── clang_struct_parsing_rule.hpp   # StructParsingRule (Clang AST matching + StructDef/FieldDef)
-│   │   ├── cli.hpp                         # CLI validation (Validator, ParsedOptions, feature traits)
-│   │   ├── operation.hpp                   # ParsingOperation interface + Recipe variant (RefactorRecipe, CodeGenRecipe)
-│   │   ├── parser.hpp                      # ParsingRuleAdapter interface + ParsedArtifacts + ParseResults
+│   │   ├── parser.hpp                      # ParsingRuleAdapter interface + ParseResults
 │   │   └── parsing_requirements.hpp        # ParsingRequirements (what operations need from parser)
-│   ├── pipeline/                           # pipeline layer (data transformation orchestration)
+│   ├── pipeline/                           # pipeline layer (orchestrates parse → execute → transmute)
+│   │   ├── parsed_artifacts.hpp            # ParsedArtifacts (pipeline's data structure for parsed source)
 │   │   └── pipeline.hpp                    # stateless pipeline functions (runParser, executeOperations, transmuteAllRecipes, execute)
+│   ├── recipes/                            # recipe layer (artifacts → transformation recipes)
+│   │   ├── operations/
+│   │   │   ├── refactoring/
+│   │   │   │   └── struct_alignment_operation.hpp  # StructAlignmentOperation (RefactorRecipe generation)
+│   │   │   └── codegen/
+│   │   │       ├── code_generator.hpp      # CodeGenerator interface (strategy pattern for test generation)
+│   │   │       ├── cunit_generator.hpp     # CUnitGenerator (concrete CUnit test generator)
+│   │   │       └── cunit_test_operation.hpp # CUnitTestOperation (CodeGenRecipe generation)
+│   │   └── operation.hpp                   # RecipeOperation interface + Recipe variant (RefactorRecipe, CodeGenRecipe)
 │   ├── reporting/                          # reporting layer (metrics output)
 │   │   ├── metrics_reporter.hpp            # metrics variant dispatcher (reportMetrics)
 │   │   └── salign_reporter.hpp             # SAlignReporter (static functions, three-level display)
-│   └── transmute/                          # transmutation layer (recipe application)
+│   └── transmute/                          # transmutation layer (recipes → file mutations)
 │       └── transmute.hpp                   # transmutation interface (applyRecipes, applyRefactor, applyCodeGen)
 ├── src/                                    # implementations (mirrors inc/ structure)
 │   ├── app/
-│   │   ├── app.cpp                         # App implementation (parser creation, pipeline execution, metrics reporting)
-│   │   └── app_context.cpp                 # ParsedArtifacts implementation
+│   │   └── app.cpp                         # App implementation (parser creation, pipeline execution, metrics reporting)
+│   ├── cli/
+│   │   └── cli.cpp                         # CLI parsing (LLVM adapter + Validator implementation)
 │   ├── files/
 │   │   └── discovery.cpp                   # file discovery implementation with threading support
 │   ├── parsing/
-│   │   ├── analysis/
-│   │   │   └── analyzer.cpp                # StructAlignmentOperation implementation
-│   │   ├── codegen/
-│   │   │   ├── cunit_generator.cpp         # CUnitGenerator stub implementation
-│   │   │   └── cunit_test_operation.cpp    # CUnitTestOperation stub implementation
 │   │   ├── clang_parser.cpp                # ClangParser implementation (ClangTool runner)
 │   │   ├── clang_struct_extractor.cpp      # ClangStructExtractor implementation (AST callbacks)
-│   │   ├── clang_struct_parsing_rule.cpp   # StructParsingRule implementation (field extraction)
-│   │   └── cli.cpp                         # CLI parsing (LLVM adapter + Validator implementation)
+│   │   └── clang_struct_parsing_rule.cpp   # StructParsingRule implementation (field extraction)
 │   ├── pipeline/
+│   │   ├── parsed_artifacts.cpp            # ParsedArtifacts implementation
 │   │   └── pipeline.cpp                    # pipeline functions (requirement gathering, operation execution, transmutation)
+│   ├── recipes/
+│   │   └── operations/
+│   │       ├── refactoring/
+│   │       │   └── struct_alignment_operation.cpp  # StructAlignmentOperation implementation
+│   │       └── codegen/
+│   │           ├── cunit_generator.cpp     # CUnitGenerator stub implementation
+│   │           └── cunit_test_operation.cpp # CUnitTestOperation stub implementation
 │   ├── reporting/
 │   │   ├── metrics_reporter.cpp            # metrics variant dispatcher (separates by type, calls reporters)
 │   │   └── salign_reporter.cpp             # SAlignReporter implementation
@@ -113,21 +120,29 @@ app/          Application layer - top-level orchestration
   ↓           - Executes pipeline
   ↓           - Reports metrics (I/O responsibility)
   ↓
+cli/          CLI layer - command-line interface
+  ↓           - Parses and validates command-line arguments
+  ↓           - Produces ParsedOptions for App
+  ↓
 pipeline/     Pipeline layer - stateless data transformation
+  ↓           - Owns ParsedArtifacts (created from parsing, consumed by operations)
   ↓           - Gathers parsing requirements from operations
   ↓           - Runs parser to create ParsedArtifacts
   ↓           - Executes operations (pass artifacts by const ref)
   ↓           - Transmutes recipes
   ↓           - Returns results + metrics (no I/O)
   ↓
-parsing/      Parsing layer - source analysis and operation execution
+parsing/      Parsing layer - source → structured data
   ↓           - Parser implementations (ClangParser, future RustParser, etc.)
-  ↓           - ParsingOperation interface + concrete operations
-  ↓           - analysis/: RefactorRecipe generation (StructAlignmentOperation)
-  ↓           - codegen/: CodeGenRecipe generation (CUnitTestOperation)
-  ↓           - CLI parsing and validation
+  ↓           - AST traversal and extraction (structs, functions)
+  ↓           - Produces ParseResults (consumed by pipeline to build ParsedArtifacts)
   ↓
-transmute/    Transmutation layer - recipe application (file mutations)
+recipes/      Recipe layer - artifacts → transformation recipes
+  ↓           - RecipeOperation interface (renamed from ParsingOperation)
+  ↓           - operations/refactoring/: RefactorRecipe generation (StructAlignmentOperation)
+  ↓           - operations/codegen/: CodeGenRecipe generation (CUnitTestOperation)
+  ↓
+transmute/    Transmutation layer - recipes → file mutations
   ↓           - applyRecipes: variant dispatcher (RefactorRecipe | CodeGenRecipe)
   ↓           - applyRefactor: byte-level in-place file modifications
   ↓           - applyCodeGen: generate and write new files
@@ -143,18 +158,26 @@ files/        File system layer - discovery and path operations
 
 1. **Separation of Concerns**:
    - `app/` handles I/O (file writing, console output, metrics reporting)
+   - `cli/` handles command-line parsing (separate from app orchestration)
    - `pipeline/` handles data transformation (pure business logic, no I/O)
-   - `parsing/` handles source analysis (reading, not writing)
-   - `transmute/` handles file mutations (writing only)
+   - `parsing/` extracts structured data from source (no recipe generation)
+   - `recipes/` generates transformation recipes from artifacts (no parsing)
+   - `transmute/` applies recipes to files (writing only)
+   - `reporting/` formats output (no business logic)
 
-2. **Dependency Flow**:
-   - High-level depends on low-level (app → pipeline → parsing/transmute)
+2. **Clear Semantic Boundaries** (v2.3 refactoring):
+   - No conflation: `parsing/` creates data, `recipes/` creates recipes
+   - `ParsedArtifacts` lives in `pipeline/` (where it's created and managed)
+   - `RecipeOperation` interface renamed from `ParsingOperation` (more accurate)
+
+3. **Dependency Flow**:
+   - High-level depends on low-level (app → pipeline → {parsing, recipes, transmute})
    - Core types (`app/core.hpp`) used across all layers
-   - `ParsedArtifacts` passed by const reference (no copying)
+   - `ParsedArtifacts` passed by const reference (no copying, parse once)
 
-3. **Removed Dependencies**:
-   - Pipeline no longer depends on reporting (metrics collection only)
-   - High-level system parts mostly free of implementation dependencies
+4. **Recent Improvements**:
+   - v2.2: Moved metrics reporting from pipeline to app layer (separation of I/O)
+   - v2.3: Split parsing/operations into `parsing/` (data extraction) and `recipes/` (transformation specs)
    - Clear boundaries enable testability and future refactoring
 
 ## Project files
