@@ -82,7 +82,6 @@ SOFTWARE_PACKAGES=" \
   llvm \
   libmpfr-doc \
   mold \
-  neovim \
   ninja-build \
   nodejs \
   npm \
@@ -114,14 +113,12 @@ sudo apt-get install -y $SOFTWARE_PACKAGES
 ##################
 LANGUAGE_PACKAGES=" \
   build-essential \
-  libstdc++-12-dev \
-  libc++-dev \
   libgmp3-dev \
   libmpfr-dev \
-  lua5.3 \
-  liblua5.3-dev \
+  lua5.4 \
+  liblua5.4-dev \
   luarocks \
-  openjdk-8-jdk \
+  default-jdk \
   pipx \
   python-is-python3 \
   python3 \
@@ -165,7 +162,7 @@ if ! hash gdb 2> /dev/null; then
   wget "http://ftp.gnu.org/gnu/gdb/gdb-15.1.tar.gz"
   tar -xvzf gdb-15.1.tar.gz
   cd gdb-15.1
-  bash configure --with-python=/usr/bin/python --with-gmp/usr/lib/x86_64-linux-gnu/ --with-mpfr=/usr/lib/x86_64-linux-gnu/
+  bash configure --with-python=/usr/bin/python --with-gmp=/usr/lib/x86_64-linux-gnu/ --with-mpfr=/usr/lib/x86_64-linux-gnu/
   make
   sudo make install
   gdb --version

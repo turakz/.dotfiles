@@ -80,7 +80,7 @@ and perform transformations like struct alignment optimization and boilerplate g
 │   │   └── integration/                    # integration test data
 │   │       ├── HelloWorld.h                # sample struct definitions
 │   │       └── HelloWorldEmpty.h           # empty file test case
-│   ├── unit/                               # unit tests (139 tests)
+│   ├── unit/                               # unit tests (144 tests)
 │   │   ├── test_app_context.cpp            # AppConfig tests (configuration types)
 │   │   ├── test_clang_parser.cpp           # ClangParser tests
 │   │   ├── test_clang_struct_extractor.cpp # ClangStructExtractor tests
@@ -88,11 +88,11 @@ and perform transformations like struct alignment optimization and boilerplate g
 │   │   ├── test_cli.cpp                    # CLI validation tests (black-box via Validator::validate)
 │   │   ├── test_core_types.cpp             # Result<T> monad tests
 │   │   ├── test_discovery.cpp              # file discovery tests
-│   │   ├── test_pipeline.cpp               # pipeline function tests
+│   │   ├── test_pipeline.cpp               # pipeline function tests (includes pre-flight validation tests)
 │   │   ├── test_salign_pipeline.cpp        # salign operation tests
 │   │   └── test_transmute.cpp              # transmutation tests (+ codegen stubs)
-│   ├── integration/                        # integration tests (11 tests - end-to-end)
-│   │   └── test_salign.cpp                 # salign end-to-end tests
+│   ├── integration/                        # integration tests (14 tests - end-to-end)
+│   │   └── test_salign.cpp                 # salign end-to-end tests (includes pre-flight validation tests)
 │   ├── performance/                        # performance benchmarks
 │   │   ├── baseline.md                     # performance baseline documentation
 │   │   ├── test_salign.cpp                 # basic performance tests
@@ -153,8 +153,9 @@ operations/   Recipe operations layer - artifacts → transformation recipes
   ↓
 transmute/    Transmutation layer - recipes → file mutations
   ↓           - applyRecipes: variant dispatcher (RefactorRecipe | CodeGenRecipe)
-  ↓           - applyRefactor: byte-level in-place file modifications
+  ↓           - applyRefactor: byte-level in-place file modifications with atomic writes (temp file + rename)
   ↓           - applyCodeGen: generate and write new files
+  ↓           - Pre-flight validation: validates all files before any modifications (prevents partial success)
   ↓
 reporting/    Reporting layer - output formatting
   ↓           - metrics_reporter: variant dispatcher for metrics
@@ -185,7 +186,12 @@ files/        File system layer - discovery and path operations
    - Parser artifacts passed by const reference (no copying, parse once)
 
 4. **Recent Improvements**:
-   - v2.4 (Phase 4a): Eliminated `ParseResults` wrapper - operations use `parser::artifacts::ParseResults` directly
+   - v2.4 (Phase 4a + Phase 1.2):
+     - Eliminated `ParseResults` wrapper - operations use `parser::artifacts::ParseResults` directly
+     - Implemented atomic writes (temp file + rename pattern) to prevent file corruption
+     - Fixed error propagation (transmute errors now fail pipeline)
+     - Added pre-flight validation (validates all files before any modifications)
+     - Removed redundant metrics (Data Size and Alignment - always showed "same")
    - v2.3: Split parsing/operations into `parsing/` (data extraction) and `operations/` (transformation specs)
    - v2.2: Moved metrics reporting from pipeline to app layer (separation of I/O)
    - Clear boundaries enable testability and future refactoring
@@ -250,9 +256,14 @@ that can reasonably be anticipated
 - **Parser abstraction**: ParsingRuleAdapter interface isolates LLVM from pipeline (language-agnostic)
 - **Separation of concerns**: Pipeline handles data transformation (no I/O), App handles I/O and reporting
 - **Current features**: --salign (struct alignment optimization), --cunit (CUnit test generation stub), --dry-run (preview without writing files)
-- **Test coverage**: 139 unit tests + 11 integration tests + performance/stress tests (v2.4 - Phase 4a complete)
+- **Test coverage**: 144 unit tests + 14 integration tests + performance/stress tests (158 total - all passing)
 - **Recent refactoring**:
-  - v2.4 (Phase 4a): Eliminated ParseResults wrapper - operations use parser::artifacts::ParseResults directly
+  - v2.4 (Phase 4a + Phase 1.2):
+    - Eliminated ParseResults wrapper - operations use parser::artifacts::ParseResults directly
+    - Atomic writes with temp file + rename (prevents corruption on error)
+    - Pre-flight validation (fail-fast before any file modifications)
+    - Error propagation fixes (transmute errors now properly fail pipeline)
+    - Metrics cleanup (removed redundant "Data Size" and "Alignment" rows)
   - v2.3: Layer reorganization (parsing/ → operations/ → transmute/)
   - v2.2: Moved metrics reporting from pipeline to app layer, zero-cost abstraction validated with valgrind
   - v2.1: Parser abstraction layer (ParsingRuleAdapter), lifecycle bug fix, zero performance regression
