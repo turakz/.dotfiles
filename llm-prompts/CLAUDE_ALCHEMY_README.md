@@ -44,7 +44,8 @@ and perform transformations like struct alignment optimization and boilerplate g
 │   │   ├── parser.hpp                      # ParsingRuleAdapter interface (language-agnostic parser interface)
 │   │   └── parsing_requirements.hpp        # ParsingRequirements (what operations need from parser)
 │   ├── pipeline/                           # pipeline layer (orchestrates parse → execute → transmute)
-│   │   └── pipeline.hpp                    # stateless pipeline functions (runParser, executeOperations, transmuteAllRecipes, execute)
+│   │   ├── pipeline.hpp                    # stateless pipeline functions (runParser, executeOperations, transmute, transmuteAllRecipes, execute)
+│   │   └── preflight_validator.hpp         # pre-flight validation (validates files before transmutation)
 │   ├── reporting/                          # reporting layer (metrics output)
 │   │   ├── metrics_reporter.hpp            # metrics variant dispatcher (reportMetrics)
 │   │   └── salign_reporter.hpp             # SAlignReporter (static functions, three-level display)
@@ -55,12 +56,24 @@ and perform transformations like struct alignment optimization and boilerplate g
 │   │   └── app.cpp                         # App implementation (parser creation, pipeline execution, metrics reporting)
 │   ├── cli/
 │   │   └── cli.cpp                         # CLI parsing (LLVM adapter + Validator implementation)
+│   │                                       # - detail::createOutputDir: helper to create output directories
+│   │                                       # - detail::validateFeature<T>: template for feature validation via traits
 │   ├── files/
 │   │   └── discovery.cpp                   # file discovery implementation with threading support
+│   │                                       # - detail::findCommonAncestor: finds common ancestor directory from paths
+│   │                                       # - buildDiscovery: builds DiscoveryConfig from patterns
+│   │                                       # - findCandidateFiles: collects files with target extensions
+│   │                                       # - compilePatterns: pre-compiles glob patterns to regex
+│   │                                       # - discoverFiles: main discovery with threading
 │   ├── operations/
 │   │   └── recipes/
 │   │       ├── refactoring/
 │   │       │   └── struct_alignment_operation.cpp  # StructAlignmentOperation implementation
+│   │       │                               # - detail::calculatePercentage: safe percentage calculation
+│   │       │                               # - computeCacheMetrics: computes SPLC score, cache waste, cache util
+│   │       │                               # - computeCacheLine: computes lcm-based cache line multiple
+│   │       │                               # - computeOptimizedSize: simulates memory layout for optimization
+│   │       │                               # - sortFieldsForOptimalAlignment: reorders fields by alignment
 │   │       └── codegen/
 │   │           ├── cunit_generator.cpp     # CUnitGenerator stub implementation
 │   │           └── cunit_test_operation.cpp # CUnitTestOperation stub implementation
@@ -69,7 +82,14 @@ and perform transformations like struct alignment optimization and boilerplate g
 │   │   ├── clang_struct_extractor.cpp      # ClangStructExtractor implementation (AST callbacks)
 │   │   └── clang_struct_parsing_rule.cpp   # ClangStructParsingRule implementation (field extraction)
 │   ├── pipeline/
-│   │   └── pipeline.cpp                    # pipeline functions (requirement gathering, operation execution, transmutation)
+│   │   ├── pipeline.cpp                    # pipeline functions (requirement gathering, operation execution, transmutation)
+│   │   │                                   # - gatherRequirements: collects parsing requirements from operations
+│   │   │                                   # - runParser: executes parser based on requirements
+│   │   │                                   # - executeOperations: runs all operations on artifacts
+│   │   │                                   # - transmute: applies recipes to files (extracted helper)
+│   │   │                                   # - transmuteAllRecipes: orchestrates pre-flight validation + transmutation
+│   │   │                                   # - execute: full pipeline orchestration
+│   │   └── preflight_validator.cpp         # pre-flight validation implementation
 │   ├── reporting/
 │   │   ├── metrics_reporter.cpp            # metrics variant dispatcher (separates by type, calls reporters)
 │   │   └── salign_reporter.cpp             # SAlignReporter implementation
@@ -80,19 +100,26 @@ and perform transformations like struct alignment optimization and boilerplate g
 │   │   └── integration/                    # integration test data
 │   │       ├── HelloWorld.h                # sample struct definitions
 │   │       └── HelloWorldEmpty.h           # empty file test case
-│   ├── unit/                               # unit tests (144 tests)
-│   │   ├── test_app_context.cpp            # AppConfig tests (configuration types)
-│   │   ├── test_clang_parser.cpp           # ClangParser tests
-│   │   ├── test_clang_struct_extractor.cpp # ClangStructExtractor tests
-│   │   ├── test_clang_struct_parsing_rule.cpp # ClangStructParsingRule tests
-│   │   ├── test_cli.cpp                    # CLI validation tests (black-box via Validator::validate)
-│   │   ├── test_core_types.cpp             # Result<T> monad tests
-│   │   ├── test_discovery.cpp              # file discovery tests
-│   │   ├── test_pipeline.cpp               # pipeline function tests (includes pre-flight validation tests)
-│   │   ├── test_salign_pipeline.cpp        # salign operation tests
-│   │   └── test_transmute.cpp              # transmutation tests (+ codegen stubs)
+│   ├── unit/                               # unit tests (172 tests)
+│   │   ├── test_app_context.cpp            # AppConfig tests (configuration types) - 10 tests
+│   │   ├── test_clang_parser.cpp           # ClangParser tests - 7 tests
+│   │   ├── test_clang_struct_extractor.cpp # ClangStructExtractor tests - 9 tests
+│   │   ├── test_clang_struct_parsing_rule.cpp # ClangStructParsingRule tests - 6 tests
+│   │   ├── test_cli.cpp                    # CLI validation tests (black-box via Validator::validate) - 35 tests
+│   │   ├── test_core_types.cpp             # Result<T> monad tests - 6 tests
+│   │   ├── test_discovery.cpp              # file discovery tests - 18 tests (includes helper function tests)
+│   │   │                                   # - buildDiscovery tests for findCommonAncestor behavior
+│   │   │                                   # - extension extraction, recursive search detection
+│   │   ├── test_pipeline.cpp               # pipeline function tests - 36 tests
+│   │   │                                   # - executeOperations, transmuteAllRecipes, execute
+│   │   │                                   # - pre-flight validation tests
+│   │   ├── test_salign_pipeline.cpp        # salign operation tests - 21 tests
+│   │   ├── test_struct_alignment_operation.cpp # struct alignment operation tests - 18 tests
+│   │   │                                   # - computeCacheLine, computeOptimizedSize API tests
+│   │   │                                   # - helper function tests: calculatePercentage, computeCacheMetrics
+│   │   └── test_transmute.cpp              # transmutation tests (+ codegen stubs) - 6 tests
 │   ├── integration/                        # integration tests (14 tests - end-to-end)
-│   │   └── test_salign.cpp                 # salign end-to-end tests (includes pre-flight validation tests)
+│   │   └── test_salign.cpp                 # salign end-to-end tests (includes pre-flight validation)
 │   ├── performance/                        # performance benchmarks
 │   │   ├── baseline.md                     # performance baseline documentation
 │   │   ├── test_salign.cpp                 # basic performance tests
@@ -100,7 +127,7 @@ and perform transformations like struct alignment optimization and boilerplate g
 │   │   ├── test_salign_parsing.cpp         # parsing performance tests
 │   │   ├── test_salign_realistic.cpp       # realistic workload tests
 │   │   └── test_salign_stress.cpp          # stress tests
-│   ├── utils.hpp                           # test utilities (createCliInputs, mock helpers)
+│   ├── utils.hpp                           # test utilities (createCliInputs, mock helpers, createRecipe, etc.)
 │   ├── utils.cpp                           # test utilities implementation
 │   └── CMakeLists.txt                      # test build configuration
 ├── design/                                 # architecture documentation
@@ -205,6 +232,9 @@ files/        File system layer - discovery and path operations
 - tests under `tests/unit` and `tests/integration` respectively
 - prefer 2 spaces for indentation
 - prefer spaces over tabs
+- headers always follow the same include order: std, 3rd party, local
+- local implementation files should always include their corresponding header first,
+then all other dependencies are included below in alphabetical order
 
 ## Workflow Rules
 - always confirm with me whenever we write, modify, or delete
@@ -222,6 +252,9 @@ the test needs to be corrected -> the application code must be examined first be
 - i prefer to let abstractions emerge as the problem develops, and then reach for an abstraction, unless it is requirements change
 that can reasonably be anticipated
 - please prefer lowercase in code comments except for proper nouns
+- header files and implementation files must have full parity -> if a function is created, it must have a header decl and an implementation -- this is a hard-requirement
+  - template functions should always be implemented in the header, not in implementation files
+- absolutely zero use of anonymous namespaces -- this is a hard-requirement
 
 ## Effective Context and Exchange Pattern
 
@@ -256,7 +289,7 @@ that can reasonably be anticipated
 - **Parser abstraction**: ParsingRuleAdapter interface isolates LLVM from pipeline (language-agnostic)
 - **Separation of concerns**: Pipeline handles data transformation (no I/O), App handles I/O and reporting
 - **Current features**: --salign (struct alignment optimization), --cunit (CUnit test generation stub), --dry-run (preview without writing files)
-- **Test coverage**: 144 unit tests + 14 integration tests + performance/stress tests (158 total - all passing)
+- **Test coverage**: 172 unit tests + 14 integration tests + performance/stress tests (186 total - all passing)
 - **Recent refactoring**:
   - v2.4 (Phase 4a + Phase 1.2):
     - Eliminated ParseResults wrapper - operations use parser::artifacts::ParseResults directly
