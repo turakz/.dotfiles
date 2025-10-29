@@ -86,9 +86,24 @@ dap.configurations.c = {
     end,
     args = function()
       local args = vim.fn.input("cmd line args: ")
-      return vim.split(args, " +")
+      local parsed_args = vim.split(args, " +")
+      print("DEBUG: Raw args input: " .. args)
+      print("DEBUG: Parsed args: " .. vim.inspect(parsed_args))
+      return parsed_args
     end,
-    cwd = "${workspaceFolder}",
+    cwd = function()
+      -- find git root to ensure consistent cwd regardless of where nvim is opened
+      local git_root = vim.fn.systemlist("git rev-parse --show-toplevel")[1]
+      if git_root and git_root ~= "" then
+        print("DEBUG: Running from git root: " .. git_root)
+        return git_root
+      else
+        -- fallback to current directory if not in a git repo
+        local fallback = vim.fn.getcwd()
+        print("DEBUG: No git root found, using cwd: " .. fallback)
+        return fallback
+      end
+    end,
     stopAtBeginningOfMainSubprogram = false,
   },
   {
