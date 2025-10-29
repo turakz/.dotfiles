@@ -256,6 +256,58 @@ that can reasonably be anticipated
   - template functions should always be implemented in the header, not in implementation files
 - absolutely zero use of anonymous namespaces -- this is a hard-requirement
 
+## Interactive Workflow Pattern
+
+When discussing any kind of code-changes with user (refactorings, new features, bug fixes, architectural changes), follow this systematic, collaborative pattern:
+
+**Step 1: Propose the Change**
+- Provide detailed explanation of what you're proposing and why
+- Explain the problem being solved or goal being achieved
+- Be clear and thorough, but concise
+
+**Step 2: Show Concrete Examples**
+- Provide before/after code examples
+- Show the actual code that will change
+- Include usage examples where relevant
+- Use real examples from the codebase when possible
+
+**Step 3: Explain Reasoning**
+- Articulate the reasons for the change
+- List pros and cons explicitly
+- Discuss trade-offs and design choices
+- Compare alternatives if applicable
+- Be honest about risks and complexities
+
+**Step 4: User Reviews and Implements**
+- Wait for user feedback and questions
+- Answer clarifying questions thoroughly
+- User decides what to implement
+- User implements the changes themselves
+- User runs tests to verify
+
+**Step 5: Review Together**
+- User shares the implementation (diff/commit)
+- Review the actual implementation
+- Discuss any variations from the proposal
+- Ensure tests pass
+- Confirm approach before moving forward
+
+**Step 6: Iterate or Proceed**
+- If changes needed, discuss and refine
+- Once both parties agree, mark as complete
+- Move to next item systematically
+- Don't jump ahead or batch multiple changes
+
+**Key Principles:**
+- One change at a time - don't batch multiple refactorings
+- User always implements - you propose and review
+- Interactive discussion at every step
+- No black-box implementations
+- Tests must pass before proceeding
+- Get explicit agreement before moving forward
+- Ask good clarifying questions to understand requirements
+- Be patient and thorough
+
 ## Effective Context and Exchange Pattern
 
 **What works exceptionally well**:
@@ -265,8 +317,6 @@ that can reasonably be anticipated
 3. **Inclusive Design Process** - Ask specific questions about edge cases and implementation decisions
 4. **Clear Next Steps** - Provide concrete, actionable options with clear trade-offs
 5. **Collaborative Approach** - Make it the user's decision while providing reasoning and context
-
-**Successful Format**: **Example → Reasoning → Questions → Next Steps**
 
 **Key Behaviors**:
 - **Show, don't just tell** - Code examples with reasoning
@@ -283,11 +333,6 @@ that can reasonably be anticipated
 - **CLI Architecture**: Semantic grouping (PathOptions, FeatureFlags, BuildConfig) + namespace-based feature traits + centralized Validator → produces ParsedOptions
 - **Error handling**: Custom Result<T> monad (see `inc/app/core.hpp`)
 - **Build system**: CMake with proper dependency management
-- **Variant architecture**: Recipe = variant<RefactorRecipe, CodeGenRecipe>, Metrics = variant<SAlignMetrics, CmockMetrics, CppunitMetrics>
-- **Static polymorphism**: std::variant + std::visit for compile-time dispatch (no vtables, zero heap allocations)
-- **Strategy pattern**: CodeGenerator interface with framework-specific implementations (CUnitGenerator, etc.)
-- **Parser abstraction**: ParsingRuleAdapter interface isolates LLVM from pipeline (language-agnostic)
-- **Separation of concerns**: Pipeline handles data transformation (no I/O), App handles I/O and reporting
 - **Current features**: --salign (struct alignment optimization), --cunit (CUnit test generation stub), --dry-run (preview without writing files)
 - **Test coverage**: 172 unit tests + 14 integration tests + performance/stress tests (186 total - all passing)
 - **Recent refactoring**:
