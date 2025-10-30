@@ -61,10 +61,10 @@ SOFTWARE_PACKAGES=" \
   curl \
   bash-completion \
   ccache \
-  clang-format \
-  clang-tidy \
-  clang \
-  clangd \
+  clang-14 \
+  clang-format-14 \
+  clang-tidy-14 \
+  clangd-14 \
   cmake \
   cmake-doc \
   cmake-format \
@@ -77,9 +77,10 @@ SOFTWARE_PACKAGES=" \
   git \
   git-lfs \
   htop \
-  lld \
-  lldb \
-  llvm \
+  lld-14 \
+  lldb-14 \
+  llvm-14 \
+  llvm-14-dev \
   libmpfr-doc \
   mold \
   ninja-build \
@@ -186,7 +187,7 @@ if ! hash lua-language-server 2> /dev/null; then
   git clone --depth 1 https://github.com/LuaLS/lua-language-server
   cd lua-language-server
   bash make.sh
-  if ! hash npm 2> /dev/null; then
+  if hash npm 2> /dev/null; then
     echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing lua-local-debugger...${NOFMT}"
     cd ${HOME}/tools
     wd=$(pwd)

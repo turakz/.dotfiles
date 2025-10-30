@@ -52,7 +52,28 @@ local dap = require("dap")
 dap.adapters.gdb = {
   type = "executable",
   command = "gdb",
-  args = { "--interpreter=dap", "--eval-command", "set print pretty on" }
+  args = { "--interpreter=dap", "--eval-command", "set print pretty on" },
+  -- Performance tuning for large binaries (like alchemy with LLVM symbols)
+  options = {
+    initialize_timeout_sec = 30,  -- Increase timeout for large symbol tables
+    disconnect_timeout_sec = 10,
+  }
+}
+
+-- lldb adapter (better for c++ templates and llvm-based projects)
+-- lldb was built by the llvm team, so it has superior support for:
+-- - c++ templates and template instantiations (no hanging on step-over/step-out)
+-- - modern c++ features (crtp, std::variant, concepts, ranges)
+-- - llvm/clang symbol tables (fast symbol resolution)
+-- - stl container pretty-printing (std::vector, std::map, etc.)
+-- prefer lldb over gdb for template-heavy c++ codebases
+dap.adapters.lldb = {
+  type = "executable",
+  command = "/usr/bin/lldb-vscode-14",
+  name = "lldb",
+  options = {
+    initialize_timeout_sec = 30,
+  }
 }
 
 -- dap lua: https://github.com/mfussenegger/nvim-dap/wiki/Debug-Adapter-installation#local-lua-debugger-vscode
@@ -78,7 +99,31 @@ dap.adapters["local-lua"] = {
 local dap = require("dap")
 dap.configurations.c = {
   {
-    name = "Launch",
+    name = "launch lldb",
+    type = "lldb",
+    request = "launch",
+    program = function()
+      return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
+    end,
+    args = function()
+      local args = vim.fn.input("cmd line args: ")
+      return vim.split(args, " +")
+    end,
+    cwd = function()
+      local git_root = vim.fn.systemlist("git rev-parse --show-toplevel")[1]
+      if git_root and git_root ~= "" then
+        print("DEBUG: Running from git root: " .. git_root)
+        return git_root
+      else
+        local fallback = vim.fn.getcwd()
+        print("DEBUG: No git root found, using cwd: " .. fallback)
+        return fallback
+      end
+    end,
+    stopOnEntry = false,
+  },
+  {
+    name = "launch gdb",
     type = "gdb",
     request = "launch",
     program = function()
@@ -86,10 +131,7 @@ dap.configurations.c = {
     end,
     args = function()
       local args = vim.fn.input("cmd line args: ")
-      local parsed_args = vim.split(args, " +")
-      print("DEBUG: Raw args input: " .. args)
-      print("DEBUG: Parsed args: " .. vim.inspect(parsed_args))
-      return parsed_args
+      return vim.split(args, " +")
     end,
     cwd = function()
       -- find git root to ensure consistent cwd regardless of where nvim is opened
@@ -107,7 +149,7 @@ dap.configurations.c = {
     stopAtBeginningOfMainSubprogram = false,
   },
   {
-    name = "Select and attach to process",
+    name = "select gdb and attach to process",
     type = "gdb",
     request = "attach",
     program = function()
@@ -120,7 +162,7 @@ dap.configurations.c = {
     cwd = '${workspaceFolder}'
   },
   {
-    name = 'Attach to gdbserver :1234',
+    name = 'attach to gdbserver :1234',
     type = 'gdb',
     request = 'attach',
     target = 'localhost:1234',
