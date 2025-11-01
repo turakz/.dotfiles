@@ -11,7 +11,7 @@
 **Alchemy** - C++ refactoring and code generation tool built on libclang/LLVM
 - Analyze C source files and perform transformations (struct alignment, test generation)
 - Extensible architecture for future language support (C++, Rust, Mojo etc.)
-- Current version: v2.8
+- Current version: v2.9
 
 ---
 
@@ -46,7 +46,7 @@ Pipeline (stateless: parse → execute → transmute)
 
 ---
 
-## 📁 Current File Structure (v2.8)
+## 📁 Current File Structure (v2.9)
 
 <details>
 <summary>inc/ - Public Headers (click to expand)</summary>
@@ -63,26 +63,37 @@ inc/
 ├── cli/
 │   └── cli.hpp                  # CLI parsing + Validator
 ├── config/
-│   └── config.hpp               # AppConfig, SourceInventory (CONSOLIDATED in refactoring #2)
+│   └── config.hpp               # AppConfig, SourceInventory
+├── files/
+│   └── discovery.hpp            # File discovery and glob expansion
+├── metrics/
+│   ├── metrics.hpp              # Metrics variant type
+│   └── salign_metrics.hpp       # SAlignMetrics
 ├── operation/
 │   ├── operation_base.hpp       # RecipeOperationBase<Derived> CRTP template
 │   ├── operation.hpp            # Recipe variant, RecipeOperation variant
 │   ├── refactoring/
 │   │   └── salign_operation.hpp # StructAlignmentOperation
 │   └── codegen/
-│       └── cunit_operation.hpp  # CUnitTestOperation
+│       └── cuint_operation.hpp  # CUnitTestOperation
 ├── parsing/
 │   ├── artifacts/
 │   │   └── artifacts.hpp        # ParseResults, StructDef, FieldDef
 │   ├── parser.hpp               # ParsingRuleAdapter interface
-│   ├── clang_parser.hpp         # ClangParser implementation
-│   ├── clang_parsing_rules.hpp  # ClangParsingMatcher base class
-│   ├── clang_struct_extractor.hpp # ClangStructExtractor (AST traversal)
-│   ├── clang_struct_parsing_rule.hpp # ClangStructParsingRule (AST matching)
-│   └── parsing_requirements.hpp # ParsingRequirements (operation needs)
+│   ├── parsing_requirements.hpp # ParsingRequirements (operation needs)
+│   └── libclang/
+│       ├── clang_parser.hpp         # ClangParser implementation
+│       ├── clang_parsing_rules.hpp  # ClangParsingMatcher base class
+│       ├── clang_struct_extractor.hpp # ClangStructExtractor (AST traversal)
+│       ├── clang_struct_parsing_rule.hpp # ClangStructParsingRule (AST matching)
+│       └── compiler_adapters/
+│           ├── compilation_database_base.hpp    # ClangCompilationDatabaseAdapter (CRTP base)
+│           ├── compilation_database_factory.hpp # CompilationDatabaseFactory
+│           ├── iar.hpp                          # IARCompilationDatabase
+│           └── msvc.hpp                         # MSVCCompilationDatabase
 ├── pipeline/
-│   ├── pipeline.hpp             # Template-based pipeline functions (NOW IN HEADER)
-│   └── preflight_validator.hpp  # Pre-flight validation (validates before transmute)
+│   ├── pipeline.hpp             # Template-based pipeline functions
+│   └── preflight_validator.hpp  # Pre-flight validation
 ├── transmute/
 │   └── transmute.hpp            # applyRecipes, applyRefactor, applyCodeGen
 └── reporting/
@@ -96,6 +107,7 @@ inc/
 
 ```
 src/
+├── main.cpp                     # Entry point
 ├── app/
 │   └── app.cpp                  # Parser creation, pipeline execution, metrics reporting
 ├── cli/
@@ -104,6 +116,8 @@ src/
 │                                # - detail::validateFeature<T>: template for feature validation
 ├── config/
 │   └── config.cpp               # sourceFilesAsStrings() implementation
+├── files/
+│   └── discovery.cpp            # File discovery implementation
 ├── operation/
 │   ├── refactoring/
 │   │   └── salign_operation.cpp # *Impl() methods (executeImpl, getNameImpl, getRequirementsImpl)
@@ -114,10 +128,14 @@ src/
 │   │                            # - sortFieldsForOptimalAlignment: reorders fields
 │   └── codegen/
 │       └── cunit_operation.cpp  # *Impl() methods (stub implementation)
-├── parsing/
+├── parsing/libclang/
 │   ├── clang_parser.cpp         # ClangParser implementation (ClangTool runner)
 │   ├── clang_struct_extractor.cpp # ClangStructExtractor (AST callbacks)
-│   └── clang_struct_parsing_rule.cpp # ClangStructParsingRule (field extraction)
+│   ├── clang_struct_parsing_rule.cpp # ClangStructParsingRule (field extraction)
+│   └── compiler_adapters/
+│       ├── compilation_database_factory.cpp # Factory: detect compiler, create adapter
+│       ├── iar.cpp                          # IAR flag translation, intrinsics stub setup
+│       └── msvc.cpp                         # MSVC flag translation
 ├── pipeline/
 │   ├── pipeline.cpp             # Non-template helpers only
 │   │                            # - executeTransmute: apply recipes to files
@@ -260,6 +278,11 @@ When proposing ANY code change (refactoring, feature, bug fix):
 ## 📊 Recent Refactoring History (v2.x)
 
 ### Completed Major Refactorings
+- **v2.9**: Compiler adapter architecture (IAR/MSVC support via Factory + Adapter patterns)
+  - CRTP base class (`ClangCompilationDatabaseAdapter`) for common delegation logic
+  - Factory pattern for compiler detection and adapter creation
+  - IAR compilation database adapter with intrinsics stub generation
+  - MSVC compilation database adapter with flag syntax translation
 - **v2.8**: Result<T> move optimization (rvalue overloads)
 - **v2.7**: CRTP for operations + template-based pipeline
 - **v2.6**: Variant extraction helper, config consolidation
