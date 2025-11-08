@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 # TODO(fractals): make into a function/organize into utilities
 if [[ -t 2 ]] && [[ -z ${NO_COLOR-} ]] && [[ ${TERM-} != "dumb" ]]; then
@@ -22,8 +23,8 @@ else
 fi
 
 if ! hash git 2> /dev/null; then
-  echo -e "${RED}FATAL ERROR: please${NOFMT}${GREEN}git${NOFMT} ${RED}before running, terminating...${NOFMT}"
-  return
+  echo -e "${RED}FATAL ERROR: please install git before running, terminating...${NOFMT}"
+  exit 1
 else
   echo -e "${GREEN}fractals::${NOFMT}${CYAN}checking for latest .dofiles/...${NOFMT}"
   git fetch
@@ -107,7 +108,10 @@ SOFTWARE_PACKAGES=" \
   "
 
 echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing software...${NOFMT}"
-sudo apt-get install -y $SOFTWARE_PACKAGES
+if ! sudo apt-get install -y $SOFTWARE_PACKAGES; then
+  echo -e "${RED}FATAL ERROR: Failed to install required software packages${NOFMT}"
+  exit 1
+fi
 
 ##################
 # language support
@@ -130,7 +134,10 @@ LANGUAGE_PACKAGES=" \
   "
 
 echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing lua, python...${NOFMT}"
-sudo apt-get install -y $LANGUAGE_PACKAGES
+if ! sudo apt-get install -y $LANGUAGE_PACKAGES; then
+  echo -e "${RED}FATAL ERROR: Failed to install language support packages${NOFMT}"
+  exit 1
+fi
 
 echo -e "${GREEN}fractals::${NOFMT}${CYAN}upgrading pip...${NOFMT}"
 python3 -m pip install --upgrade pip
@@ -148,18 +155,19 @@ echo -e "${GREEN}fractals::${NOFMT}${CYAN}pipx installing hatch... ${NOFMT}"
 pipx install hatch
 
 ##################################
+# Helper function for tools directory
+##################################
+ensure_tools_dir() {
+  mkdir -p "${HOME}/tools"
+  cd "${HOME}/tools"
+}
+
+##################################
 # gdb with python support for dap
 ##################################
 if ! hash gdb 2> /dev/null; then
   echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing gdb with python dap support...${NOFMT}"
-  if test -d ~/tools; then
-    cd $HOME/tools
-  else
-    cd $HOME
-    mkdir tools
-    echo -e "${ORANGE}making${NOFMT} ${CYAN}/home/tools/${NOFMT}"
-    cd tools
-  fi
+  ensure_tools_dir
   wget "http://ftp.gnu.org/gnu/gdb/gdb-15.1.tar.gz"
   tar -xvzf gdb-15.1.tar.gz
   cd gdb-15.1
@@ -167,6 +175,8 @@ if ! hash gdb 2> /dev/null; then
   make
   sudo make install
   gdb --version
+  cd ..
+  rm gdb-15.1.tar.gz
 fi
 
 ######
@@ -174,38 +184,22 @@ fi
 #####
 if ! hash lua-language-server 2> /dev/null; then
   echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing lua-language-server...${NOFMT}"
-  if test -d ~/tools; then
-    cd $HOME/tools
-  else
-    cd $HOME
-    mkdir tools
-    echo -e "${ORANGE}making${NOFMT} ${CYAN}/home/tools/${NOFMT}"
-    cd tools
-  fi
-  wd=$(pwd)
-  echo -e "${GREEN}fractals::current working directory:${NOFMT} ${CYAN}${wd}${NOFMT}"
+  ensure_tools_dir
   git clone --depth 1 https://github.com/LuaLS/lua-language-server
   cd lua-language-server
   bash make.sh
   if hash npm 2> /dev/null; then
     echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing lua-local-debugger...${NOFMT}"
-    cd ${HOME}/tools
-    wd=$(pwd)
-    echo -e "${GREEN}fractals::current working directory:${NOFMT} ${CYAN}${wd}${NOFMT}"
+    ensure_tools_dir
     git clone https://github.com/tomblind/local-lua-debugger-vscode.git
     cd local-lua-debugger-vscode
-    wd=$(pwd)
-    echo -e "${GREEN}fractals::current working directory:${NOFMT} ${CYAN}${wd}${NOFMT}"
     npm install
     npm run build
-    cd ${HOME}
-    wd=$(pwd)
-    echo -e "${GREEN}fractals::current working directory:${NOFMT} ${CYAN}${wd}${NOFMT}"
   else
-    echo -e "${ORANGE}fractals::${NOFMT}${CYAN}lua-local-debugger${NOFMT} ${ORANGE}cannot be installed,${NOFMT} ${CYAN}npm${NOFMT}${ORANGE}missing${NOFMT}"
+    echo -e "${ORANGE}fractals::${NOFMT}${CYAN}lua-local-debugger${NOFMT} ${ORANGE}cannot be installed,${NOFMT} ${CYAN}npm${NOFMT}${ORANGE} missing${NOFMT}"
   fi
 else
-  echo -e "${GREEN}fractals::${NOFMT}${CYAN}lua-language-server${NOCMFT} ${ORANGE}already installed${NOFMT}"
+  echo -e "${GREEN}fractals::${NOFMT}${CYAN}lua-language-server${NOFMT} ${ORANGE}already installed${NOFMT}"
 fi
 
 # luacheck via luarocks
@@ -238,7 +232,8 @@ else
 fi
 echo -e "${GREEN}fractals::${NOFMT}${CYAN}running packer...${NOFMT}\n"
 nvim --headless +PackerClean +PackerSync +UpdateRemotePlugins +TSUpdateSync +q!
-# don't tracker updates to plugin compilation
+# don't track updates to plugin compilation
+cd "${HOME}/.dotfiles"
 git update-index --assume-unchanged home/.config/nvim/plugin/packer_compiled.lua
 
 ###############

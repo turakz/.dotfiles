@@ -11,7 +11,7 @@
 **Alchemy** - C++ refactoring and code generation tool built on libclang/LLVM
 - Analyze C source files and perform transformations (struct alignment, test generation)
 - Extensible architecture for future language support (C++, Rust, Mojo etc.)
-- Current version: v2.9
+- Current version: v2.10
 
 ---
 
@@ -46,7 +46,7 @@ Pipeline (stateless: parse → execute → transmute)
 
 ---
 
-## 📁 Current File Structure (v2.9)
+## 📁 Current File Structure (v2.10)
 
 <details>
 <summary>inc/ - Public Headers (click to expand)</summary>
@@ -87,10 +87,10 @@ inc/
 │       ├── clang_struct_extractor.hpp # ClangStructExtractor (AST traversal)
 │       ├── clang_struct_parsing_rule.hpp # ClangStructParsingRule (AST matching)
 │       └── compiler_adapters/
-│           ├── compilation_database_base.hpp    # ClangCompilationDatabaseAdapter (CRTP base)
-│           ├── compilation_database_factory.hpp # CompilationDatabaseFactory
-│           ├── iar.hpp                          # IARCompilationDatabase
-│           └── msvc.hpp                         # MSVCCompilationDatabase
+│           ├── clang_compilation_database_adapter.hpp  # Adapter wrapping libclang CompilationDatabase
+│           ├── clang_compilation_database_factory.hpp  # Factory for compiler detection and adapter creation
+│           ├── iar_database_translator.hpp             # IARDbTranslator (IAR → Clang translation)
+│           └── msvc_database_translator.hpp            # MSVCDbTranslator (MSVC → Clang translation)
 ├── pipeline/
 │   ├── pipeline.hpp             # Template-based pipeline functions
 │   └── preflight_validator.hpp  # Pre-flight validation
@@ -133,9 +133,10 @@ src/
 │   ├── clang_struct_extractor.cpp # ClangStructExtractor (AST callbacks)
 │   ├── clang_struct_parsing_rule.cpp # ClangStructParsingRule (field extraction)
 │   └── compiler_adapters/
-│       ├── compilation_database_factory.cpp # Factory: detect compiler, create adapter
-│       ├── iar.cpp                          # IAR flag translation, intrinsics stub setup
-│       └── msvc.cpp                         # MSVC flag translation
+│       ├── clang_compilation_database_adapter.cpp  # Adapter delegates to translated CompilationDatabase
+│       ├── clang_compilation_database_factory.cpp  # Factory detects compiler, creates translator, returns adapter
+│       ├── iar_database_translator.cpp             # IAR translation (flags, intrinsics stubs, CMSIS stubs)
+│       └── msvc_database_translator.cpp            # MSVC translation (flag syntax, compatibility modes)
 ├── pipeline/
 │   ├── pipeline.cpp             # Non-template helpers only
 │   │                            # - executeTransmute: apply recipes to files
@@ -155,12 +156,12 @@ src/
 
 ```
 tests/
-├── unit/                        # 138 unit tests (mock all dependencies)
+├── unit/                        # 140 unit tests (mock all dependencies)
 │   ├── test_core_types.cpp      # Result<T> tests - 12 tests (includes rvalue tests)
-│   ├── test_pipeline.cpp        # Pipeline tests - 26 tests
+│   ├── test_pipeline.cpp        # Pipeline tests - 19 tests
 │   │                            # - Uses TestRecipeOperation variant (CRTP-based mocks)
-│   │                            # - Tests: executeOperations, runParser, transmute, execute
-│   │                            # - Includes pre-flight validation tests
+│   │                            # - Tests: executeOperations, runParser, execute
+│   │                            # - Note: transmute I/O tests in integration tests
 │   ├── test_operation.cpp       # StructAlignmentOperation tests - 20 tests
 │   │                            # - Tests public API (getRequirements, getName, operator())
 │   │                            # - Tests computeCacheLine, computeOptimizedSize helpers
@@ -171,8 +172,12 @@ tests/
 │   ├── test_clang_struct_parsing_rule.cpp # ClangStructParsingRule tests - 6 tests
 │   ├── test_app_context.cpp     # AppConfig tests - 10 tests
 │   └── test_transmute.cpp       # Transmutation tests - 6 tests
-├── integration/                 # 21 integration tests (end-to-end)
-│   └── test_salign.cpp          # Salign end-to-end tests (includes pre-flight validation)
+├── integration/                 # 33 integration tests (end-to-end)
+│   ├── test_clang_parser.cpp    # Parser integration tests with realistic databases (GCC/Clang/IAR/MSVC)
+│   └── salign/
+│       ├── test_salign_pipeline.cpp  # End-to-end pipeline tests
+│       ├── test_salign_errors.cpp    # Error handling and pre-flight validation
+│       └── test_salign_recipes.cpp   # Recipe generation behavior
 ├── performance/                 # Performance benchmarks
 │   ├── baseline.md              # Performance baseline documentation
 │   ├── test_salign.cpp          # Basic performance tests
@@ -181,9 +186,10 @@ tests/
 │   ├── test_salign_realistic.cpp # Realistic workload tests
 │   └── test_salign_stress.cpp   # Stress tests
 ├── data/
-│   └── integration/
-│       ├── HelloWorld.h         # Sample struct definitions
-│       └── HelloWorldEmpty.h    # Empty file test case
+│   └── shared_project/          # Shared test project for realistic database tests
+│       ├── main.c
+│       ├── inc/                 # Header files (config.h, utils.h, header_only.h)
+│       └── src/                 # Source files (config.c, utils.c)
 ├── utils.hpp                    # Test utilities (createCliInputs, mock helpers, createRecipe)
 ├── utils.cpp                    # Test utilities implementation
 └── CMakeLists.txt               # Test build configuration
@@ -197,9 +203,10 @@ tests/
 docs/design/
 ├── CLI_IDEA_LAND.md             # CLI design exploration
 ├── alchemy-dev-v1.md            # v1 development notes
-├── alchemy-dev-v2.md            # v2 development roadmap (current: v2.8)
-├── component-diagrams.md        # Component architecture (current: v2.4)
-└── sequence-diagrams.md         # Interaction flows (current: v2.4)
+├── alchemy-dev-v2.md            # v2 development roadmap (current: v2.10)
+├── component-diagrams.md        # Component architecture (current: v2.10)
+├── sequence-diagrams.md         # Interaction flows (current: v2.10)
+└── compiler_translation.md      # Compilation database translation design doc
 ```
 </details>
 
@@ -225,6 +232,14 @@ docs/design/
    - Integration tests verify component behavior (functionality testing) -> this can be a component in isolation or end-to-end
 
 7. **Explicit Newlines**: `fmt::print` doesn't add them - include `\n` explicitly
+
+8. **Documentation-Driven Decision Making**: Base all technical claims on verified facts, not probabilistic guessing
+   - **Consult official documentation** before making claims about compiler flags, language features, or library behavior
+   - **State uncertainty explicitly** when you don't know something ("I don't know which flags overlap - let me check the documentation")
+   - **Verify assumptions** with searches or empirical tests rather than guessing based on probability
+   - **Push back only with evidence** - disagree with concrete facts/documentation, not just confidence
+   - **No speculation** - "GCC might support this" should be "Let me check the GCC documentation to verify"
+   - **Transparency over correctness** - admitting uncertainty is better than misleading with confident guesses
 
 ---
 
@@ -264,7 +279,7 @@ When proposing ANY code change (refactoring, feature, bug fix):
   - `make test.unit` - Run unit tests
   - `make test.integration` - Run integration tests
   - `make test.all` - Run all tests
-- **Test Coverage**: 138 unit + 21 integration = 159 tests (all passing ✅)
+- **Test Coverage**: 127 unit + 33 integration = 160 tests (all passing ✅)
 - **Current Features**:
   - `--salign` - Struct alignment optimization
   - `--cunit` - CUnit test generation (stub)
@@ -278,11 +293,13 @@ When proposing ANY code change (refactoring, feature, bug fix):
 ## 📊 Recent Refactoring History (v2.x)
 
 ### Completed Major Refactorings
+- **v2.10**: Compiler translator refactoring (removed CRTP, simplified to stateless translators)
+  - Refactored from CRTP adapter pattern to simpler translator pattern
+  - IAR/MSVC translators are now stateless (no polymorphism needed)
+  - Fixed IAR detection bug (removed ambiguous flags from detection logic)
+  - Added CMSIS stub generation for IAR projects
+  - Test coverage improvements for compiler adapters
 - **v2.9**: Compiler adapter architecture (IAR/MSVC support via Factory + Adapter patterns)
-  - CRTP base class (`ClangCompilationDatabaseAdapter`) for common delegation logic
-  - Factory pattern for compiler detection and adapter creation
-  - IAR compilation database adapter with intrinsics stub generation
-  - MSVC compilation database adapter with flag syntax translation
 - **v2.8**: Result<T> move optimization (rvalue overloads)
 - **v2.7**: CRTP for operations + template-based pipeline
 - **v2.6**: Variant extraction helper, config consolidation
