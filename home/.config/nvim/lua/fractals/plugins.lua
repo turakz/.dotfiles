@@ -41,7 +41,16 @@ require("lazy").setup({
   {
     "nvim-tree/nvim-tree.lua",
     cmd = { "NvimTreeToggle", "NvimTreeFocus" },
-    dependencies = { "nvim-tree/nvim-web-devicons" },
+    dependencies = {
+      "nvim-tree/nvim-web-devicons",
+      "stevearc/dressing.nvim"
+    },
+  },
+
+  -- Better UI for vim.ui.select/input
+  {
+    "stevearc/dressing.nvim",
+    lazy = true,
   },
 
   -- Telescope
