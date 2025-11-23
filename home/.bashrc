@@ -125,8 +125,6 @@ export NVM_DIR="$HOME/.nvm"
 export EDITOR='nvim'
 
 # append extra PATH dirs
-alias luamake=/home/harryblotter/zdev/tools/lua-language-server/3rd/luamake/luamake
-export PATH="$HOME/tools/lua-language-server/bin:$PATH"
 export PATH="/usr/local/bin:$PATH"
 export PATH="$HOME/.local/bin:$PATH"
 export PATH="$HOME/tools/android_sdk/android-studio-2022.1.1.21-linux/android-studio/jbr/bin:$PATH"
@@ -138,4 +136,8 @@ source ~/.local/share/blesh/ble.sh
 export STARSHIP_CONFIG="${HOME}/.dotfiles/home/.config/starship/starship.toml"
 eval "$(starship init bash)"
 # pixi/mojo
-export PATH="/home/fractals/.pixi/bin:$PATH"
+export PATH="$HOME/.pixi/bin:$PATH"
+export PATH="$HOME/.local/share/nvim/mason/bin:$PATH"
+
+# lldb debuggers
+#export PYTHONPATH=/usr/lib/llvm-14/lib/python3/dist-packages:$PYTHONPATH

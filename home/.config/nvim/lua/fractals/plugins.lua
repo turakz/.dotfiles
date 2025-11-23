@@ -1,109 +1,190 @@
--- plugin management
-local ensure_packer = function()
-  local fn = vim.fn
-  local install_path = fn.stdpath("data").."/site/pack/packer/start/packer.nvim"
-  if fn.empty(fn.glob(install_path)) > 0 then
-    fn.system({"git", "clone", "--depth", "1", "https://github.com/wbthomason/packer.nvim", install_path})
-    vim.cmd [[packadd packer.nvim]]
-    return true
-  end
-  return false
+-- lua/fractals/plugins.lua
+-- Plugin management with lazy.nvim
+
+-- Bootstrap lazy.nvim
+local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
+if not vim.loop.fs_stat(lazypath) then
+  vim.fn.system({
+    "git",
+    "clone",
+    "--filter=blob:none",
+    "https://github.com/folke/lazy.nvim.git",
+    "--branch=stable",
+    lazypath,
+  })
 end
+vim.opt.rtp:prepend(lazypath)
 
-local packer_bootstrap = ensure_packer()
+-- Plugin specifications
+require("lazy").setup({
+  -- Editing
+  {
+    "lukas-reineke/indent-blankline.nvim",
+    event = { "BufReadPost", "BufNewFile" },
+  },
 
-return require("packer").startup(function(use)
-  use "wbthomason/packer.nvim"
+  -- Completion engine
+  {
+    "hrsh7th/nvim-cmp",
+    event = "InsertEnter",
+    dependencies = {
+      "hrsh7th/cmp-nvim-lsp",
+      "hrsh7th/cmp-buffer",
+      "hrsh7th/cmp-path",
+      "hrsh7th/cmp-cmdline",
+      "hrsh7th/vim-vsnip",
+      "hrsh7th/vim-vsnip-integ",
+    },
+  },
 
-  -- editing
-  use "lukas-reineke/indent-blankline.nvim"
-  use "numToStr/Comment.nvim"
+  -- File explorer
+  {
+    "nvim-tree/nvim-tree.lua",
+    cmd = { "NvimTreeToggle", "NvimTreeFocus" },
+    dependencies = { "nvim-tree/nvim-web-devicons" },
+  },
 
-  -- completion engine
-  use "hrsh7th/nvim-cmp"
-  use "hrsh7th/cmp-nvim-lsp"
-  use "hrsh7th/cmp-buffer"
-  use "hrsh7th/cmp-path"
-  use "hrsh7th/cmp-cmdline"
-  use "hrsh7th/vim-vsnip"
-  use "hrsh7th/vim-vsnip-integ"
+  -- Telescope
+  {
+    "nvim-telescope/telescope.nvim",
+    tag = "0.1.8",
+    cmd = "Telescope",
+    dependencies = {
+      "nvim-lua/plenary.nvim",
+      "nvim-telescope/telescope-file-browser.nvim",
+      "nvim-telescope/telescope-fzf-native.nvim",
+    },
+  },
+  {
+    "nvim-telescope/telescope-fzf-native.nvim",
+    build = "cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release && cmake --install build --prefix build",
+  },
 
-  -- file explorer
-  use "nvim-tree/nvim-tree.lua"
-
-  -- telescope
-  use { "nvim-telescope/telescope.nvim", tag = "0.1.8", requires = { "nvim-lua/plenary.nvim" } }
-  use { "nvim-telescope/telescope-file-browser.nvim", requires = { "telescope.nvim" } }
-  use { "nvim-telescope/telescope-fzf-native.nvim", run = "cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release && cmake --install build --prefix build" }
-
-  -- treesitter
-  use {
+  -- Treesitter
+  {
     "nvim-treesitter/nvim-treesitter",
-    run = function()
-      local ts_update = require("nvim-treesitter.install").update({ with_sync = true })
-      ts_update()
-    end,
-  }
-  use { "nvim-treesitter/nvim-treesitter-textobjects", after = "nvim-treesitter" }
-  use { "nvim-treesitter/nvim-treesitter-context", after = "nvim-treesitter" }
+    build = ":TSUpdate",
+    event = { "BufReadPost", "BufNewFile" },
+    dependencies = {
+      "nvim-treesitter/nvim-treesitter-textobjects",
+      "nvim-treesitter/nvim-treesitter-context",
+    },
+  },
 
   -- LSP
-  use {
-    "williamboman/mason.nvim",
-    "williamboman/mason-lspconfig.nvim",
+  {
     "neovim/nvim-lspconfig",
-    requires = { "hrsh7th/cmp-nvim-lsp" }
-  }
+    event = { "BufReadPre", "BufNewFile" },
+    dependencies = {
+      "hrsh7th/cmp-nvim-lsp",
+      "williamboman/mason.nvim",
+      "williamboman/mason-lspconfig.nvim",
+    },
+  },
+  {
+    "williamboman/mason.nvim",
+    cmd = "Mason",
+  },
+  {
+    "williamboman/mason-lspconfig.nvim",
+  },
 
-  -- clangd extensions
-  use { "p00f/clangd_extensions.nvim", requires = { "neovim/nvim-lspconfig", "hrsh7th/cmp-nvim-lsp" } }
+  -- Clangd extensions
+  {
+    "p00f/clangd_extensions.nvim",
+    dependencies = { "neovim/nvim-lspconfig", "hrsh7th/cmp-nvim-lsp" },
+    ft = { "c", "cpp" },
+  },
 
-  -- linting
-  use "mfussenegger/nvim-lint"
+  -- Linting
+  {
+    "mfussenegger/nvim-lint",
+    event = { "BufReadPre", "BufNewFile" },
+  },
 
-  -- flutter
-  use { "akinsho/flutter-tools.nvim", requires = { "nvim-lua/plenary.nvim", "stevearc/dressing.nvim" } }
+  -- Flutter
+  {
+    "akinsho/flutter-tools.nvim",
+    dependencies = { "nvim-lua/plenary.nvim", "stevearc/dressing.nvim" },
+    ft = "dart",
+  },
 
-  -- dap/debugging
-  use "mfussenegger/nvim-dap"
-  use {
+  -- DAP/Debugging
+  {
+    "mfussenegger/nvim-dap",
+    dependencies = {
+      "rcarriga/nvim-dap-ui",
+      "nvim-neotest/nvim-nio",
+      "mfussenegger/nvim-dap-python",
+    },
+  },
+  {
     "rcarriga/nvim-dap-ui",
-      requires = {
-        "mfussenegger/nvim-dap",
-        "nvim-neotest/nvim-nio" -- dap depends on this
-      }
-  }
-  use "mfussenegger/nvim-dap-python"
+    dependencies = { "mfussenegger/nvim-dap", "nvim-neotest/nvim-nio" },
+  },
+  {
+    "mfussenegger/nvim-dap-python",
+    dependencies = { "mfussenegger/nvim-dap" },
+    ft = "python",
+  },
 
-  -- statusline
-  use { "nvim-lualine/lualine.nvim", requires = { "nvim-tree/nvim-web-devicons", opt = true } }
+  -- Glyphs
+  {
+    "nvim-tree/nvim-web-devicons",
+    lazy = true,
+  },
 
-  -- colorscheme
-  use "folke/tokyonight.nvim"
+  -- Statusline
+  {
+    "nvim-lualine/lualine.nvim",
+    event = "VeryLazy",
+    dependencies = { "nvim-tree/nvim-web-devicons" },
+  },
 
-  -- snippets, commenting
-  use "numToStr/Comment.nvim"
+  -- Colorscheme
+  {
+    "folke/tokyonight.nvim",
+    lazy = false,
+    priority = 1000,
+  },
 
-  -- toggleterm
-  use "akinsho/toggleterm.nvim"
+  -- Commenting
+  {
+    "numToStr/Comment.nvim",
+    event = "VeryLazy",
+  },
 
-  -- which-key
-  use "folke/which-key.nvim"
+  -- Toggleterm
+  {
+    "akinsho/toggleterm.nvim",
+    cmd = "ToggleTerm",
+  },
 
-  -- git
-  use "lewis6991/gitsigns.nvim"
-  use "tpope/vim-fugitive"  -- no setup required
+  -- Which-key
+  {
+    "folke/which-key.nvim",
+    event = "VeryLazy",
+  },
 
-  -- sleuth
-  --use "tpope/vim-sleuth"
+  -- Git
+  {
+    "lewis6991/gitsigns.nvim",
+    event = { "BufReadPre", "BufNewFile" },
+  },
+  {
+    "tpope/vim-fugitive",
+    cmd = { "Git", "Gstatus", "Gblame", "Gpush", "Gpull" },
+  },
 
-  -- cmake-tools
-  use "Civitasv/cmake-tools.nvim"
+  -- CMake tools
+  {
+    "Civitasv/cmake-tools.nvim",
+    ft = { "c", "cpp", "cmake" },
+  },
 
-  -- neovim-tasks
-  use "Shatur/neovim-tasks"
-
-  if packer_bootstrap then
-    require("packer").sync()
-  end
-end)
+  -- Neovim tasks
+  {
+    "Shatur/neovim-tasks",
+    dependencies = { "nvim-lua/plenary.nvim" },
+  },
+})

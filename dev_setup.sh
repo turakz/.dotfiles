@@ -22,15 +22,15 @@ else
   export CYAN=''
 fi
 
-if ! hash git 2> /dev/null; then
-  echo -e "${RED}FATAL ERROR: please install git before running, terminating...${NOFMT}"
-  exit 1
-else
-  echo -e "${GREEN}fractals::${NOFMT}${CYAN}checking for latest .dofiles/...${NOFMT}"
-  git fetch
-  git pull
-  git submodule update --init --recursive
-fi
+#if ! hash git 2> /dev/null; then
+#  echo -e "${RED}FATAL ERROR: please install git before running, terminating...${NOFMT}"
+#  exit 1
+#else
+#  echo -e "${GREEN}fractals::${NOFMT}${CYAN}checking for latest .dofiles/...${NOFMT}"
+#  git fetch
+#  git pull
+#  git submodule update --init --recursive
+#fi
 
 # add firefox repository for latest/manage as deb pkg
 #echo -e "installing ${GREEN}fractals::${NOFMT}environment::adding apt repository... mozillateam (firefox)"
@@ -53,19 +53,17 @@ sudo apt update -y
 #echo -e "${GREEN}fractals::${NOFMT}${CYAN}upgrading to ubuntu latest...${NOFMT}"
 #sudo apt upgrade -y
 
-# removed:
-  # libc6-dev-i386 \
-  # lib32z1 \
-
 SOFTWARE_PACKAGES=" \
+  bison \
   black \
   curl \
   bash-completion \
+  build-essential \
   ccache \
-  clang-14 \
-  clang-format-14 \
-  clang-tidy-14 \
-  clangd-14 \
+  clang-18 \
+  clang-format-18 \
+  clang-tidy-18 \
+  clangd-18 \
   cmake \
   cmake-doc \
   cmake-format \
@@ -78,15 +76,20 @@ SOFTWARE_PACKAGES=" \
   git \
   git-lfs \
   htop \
-  lld-14 \
-  lldb-14 \
-  llvm-14 \
-  llvm-14-dev \
+  lld-18 \
+  lldb-18 \
+  llvm-18 \
+  llvm-18-dev \
+  libevent-dev \
+  libgmp3-dev \
   libmpfr-doc \
+  libmpfr-dev \
   mold \
+  ncurses-dev \
   ninja-build \
   nodejs \
-  npm \
+  pkg-config \
+  python3-lldb-18 \
   ripgrep \
   shellcheck \
   shfmt \
@@ -113,16 +116,20 @@ if ! sudo apt-get install -y $SOFTWARE_PACKAGES; then
   exit 1
 fi
 
+# Create version-agnostic lldb-dap symlink for DAP configurations
+if [ ! -L /usr/local/bin/lldb-dap ]; then
+  echo -e "${GREEN}fractals::${NOFMT}${CYAN}creating lldb-dap symlink...${NOFMT}"
+  sudo ln -s /usr/bin/lldb-dap-18 /usr/local/bin/lldb-dap
+else
+  echo -e "${GREEN}fractals::${NOFMT}${CYAN}lldb-dap symlink${NOFMT} ${ORANGE}already exists${NOFMT}"
+fi
+
 ##################
 # language support
 ##################
 LANGUAGE_PACKAGES=" \
-  build-essential \
-  libgmp3-dev \
-  libmpfr-dev \
   lua5.4 \
   liblua5.4-dev \
-  luarocks \
   default-jdk \
   pipx \
   python-is-python3 \
@@ -131,6 +138,7 @@ LANGUAGE_PACKAGES=" \
   python3-mypy \
   python3-pip \
   python3-venv \
+  python3-debugpy \
   "
 
 echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing lua, python...${NOFMT}"
@@ -140,19 +148,11 @@ if ! sudo apt-get install -y $LANGUAGE_PACKAGES; then
 fi
 
 echo -e "${GREEN}fractals::${NOFMT}${CYAN}upgrading pip...${NOFMT}"
-python3 -m pip install --upgrade pip
+python3 -m pip install --user --upgrade pip setuptools wheel
 
 echo -e "${GREEN}fractals::${NOFMT}${CYAN}snap installing pyright... ${NOFMT}"
 sudo snap install pyright --classic
 
-echo -e "${GREEN}fractals::${NOFMT}${CYAN}pip3 upgrading pynvim... ${NOFMT}"
-pip3 install pynvim --upgrade
-
-echo -e "${GREEN}fractals::${NOFMT}${CYAN}pip3 upgrading debugpy... ${NOFMT}"
-pip3 install debugpy --upgrade
-
-echo -e "${GREEN}fractals::${NOFMT}${CYAN}pipx installing hatch... ${NOFMT}"
-pipx install hatch
 
 ##################################
 # Helper function for tools directory
@@ -180,14 +180,29 @@ if ! hash gdb 2> /dev/null; then
 fi
 
 ######
-# lua
+# lua + debugger
 #####
-if ! hash lua-language-server 2> /dev/null; then
-  echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing lua-language-server...${NOFMT}"
-  ensure_tools_dir
-  git clone --depth 1 https://github.com/LuaLS/lua-language-server
-  cd lua-language-server
-  bash make.sh
+if ! hash luarocks 2> /dev/null; then
+  echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing luarocks...${NOFMT}"
+  cd /tmp
+  wget https://luarocks.org/releases/luarocks-3.11.1.tar.gz
+  tar xzf luarocks-3.11.1.tar.gz
+  cd luarocks-3.11.1
+
+  # --- 3) Build and install for Lua 5.4 with versioned rocks dir ---
+  ./configure --prefix=/usr/local \
+              --lua-version=5.4
+  make build
+  sudo make install
+  echo -e "${GREEN}fractals::${NOFMT}${CYAN}cleaning up luarocks tmp dir...${NOFMT}"
+  rm -rf /tmp/luarocks-3.11.1*
+  export PATH="$HOME/.luarocks/bin:$PATH"
+  echo -e "${GREEN}fractals::${NOFMT}${CYAN}added $HOME/.luarocks.bin: to PATH...${NOFMT}"
+else
+  echo -e "${ORANGE}fractals::${NOFMT}${CYAN}luarocks${NOFMT} ${ORANGE}cannot be installed,${NOFMT} ${CYAN}luarocks${NOFMT}${ORANGE} missing${NOFMT}"
+fi
+
+if ! [ -d "${HOME}/tools/local-lua-debugger-vscode" ]; then
   if hash npm 2> /dev/null; then
     echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing lua-local-debugger...${NOFMT}"
     ensure_tools_dir
@@ -199,15 +214,7 @@ if ! hash lua-language-server 2> /dev/null; then
     echo -e "${ORANGE}fractals::${NOFMT}${CYAN}lua-local-debugger${NOFMT} ${ORANGE}cannot be installed,${NOFMT} ${CYAN}npm${NOFMT}${ORANGE} missing${NOFMT}"
   fi
 else
-  echo -e "${GREEN}fractals::${NOFMT}${CYAN}lua-language-server${NOFMT} ${ORANGE}already installed${NOFMT}"
-fi
-
-# luacheck via luarocks
-if ! hash luacheck 2> /dev/null; then
-  echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing luacheck...${NOFMT}"
-  sudo luarocks install luacheck
-else
-  echo -e "${GREEN}fractals::${NOFMT}${CYAN}luacheck${NOFMT} ${ORANGE}already installed${NOFMT}"
+  echo -e "${GREEN}fractals::${NOFMT}${CYAN}lua-local-debugger${NOFMT} ${ORANGE}already installed${NOFMT}"
 fi
 
 ####################################################
@@ -224,17 +231,11 @@ if ! hash nvim 2> /dev/null; then
     echo -e "${GREEN}fractals::${NOFMT}${CYAN}configuring neovim...${NOFMT}"
     nvim --headless -c 'call mkdir(stdpath("config"), "p") | quit'
 
-    echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing packer...${NOFMT}"
-    git clone --depth 1 https://github.com/wbthomason/packer.nvim \
-     ~/.local/share/nvim/site/pack/packer/start/packer.nvim
+    # lazy.nvim bootstraps itself automatically on first launch
+    echo -e "${GREEN}fractals::${NOFMT}${CYAN}lazy.nvim will bootstrap on first nvim launch...${NOFMT}"
 else
   echo -e "${GREEN}fractals::${NOFMT}${CYAN}neovim${NOCMFT} ${ORANGE}already installed${NOFMT}"
 fi
-echo -e "${GREEN}fractals::${NOFMT}${CYAN}running packer...${NOFMT}\n"
-nvim --headless +PackerClean +PackerSync +UpdateRemotePlugins +TSUpdateSync +q!
-# don't track updates to plugin compilation
-cd "${HOME}/.dotfiles"
-git update-index --assume-unchanged home/.config/nvim/plugin/packer_compiled.lua
 
 ###############
 # flutter/dart
@@ -249,9 +250,9 @@ git update-index --assume-unchanged home/.config/nvim/plugin/packer_compiled.lua
 ########
 # nodejs
 ########
-#echo -e "installing ${GREEN}fractals::${NOFMT}environment::special_cases... nodejs toolchain"
-#curl -fsSL https://deb.nodesource.com/setup_19.x | sudo -E bash - &&\
-#sudo apt install -f -y nodejs
+echo -e "installing ${GREEN}fractals::${NOFMT}environment::installing nodejs toolchain..."
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt-get install -y nodejs
 
 ######
 # rust
@@ -279,15 +280,19 @@ fi
 ##############################################
 # ble.sh: https://github.com/akinomyoga/ble.sh
 ##############################################
-echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing ble.sh in ${HOME}...${NOFMT}"
-cd ~
-wd=$(pwd)
-echo -e "${GREEN}fractals::current working directory:${NOFMT} ${CYAN}${wd}${NOFMT}"
-git clone --recursive --depth 1 --shallow-submodules https://github.com/akinomyoga/ble.sh.git
-make -C ble.sh install PREFIX=~/.local
-cd .dotfiles
-wd=$(pwd)
-echo -e "${GREEN}fractals::current working directory:${NOFMT} ${CYAN}${wd}${NOFMT}"
+if [ ! -d "${HOME}/ble.sh" ]; then
+  echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing ble.sh in ${HOME}...${NOFMT}"
+  cd ~
+  wd=$(pwd)
+  echo -e "${GREEN}fractals::current working directory:${NOFMT} ${CYAN}${wd}${NOFMT}"
+  git clone --recursive --depth 1 --shallow-submodules https://github.com/akinomyoga/ble.sh.git
+  make -C ble.sh install PREFIX=~/.local
+  cd .dotfiles
+  wd=$(pwd)
+  echo -e "${GREEN}fractals::current working directory:${NOFMT} ${CYAN}${wd}${NOFMT}"
+else
+  echo -e "${GREEN}fractals::${NOFMT}${CYAN}ble.sh${NOFMT} ${ORANGE}already installed${NOFMT}"
+fi
 
 ###########
 # starship:
@@ -305,6 +310,5 @@ fi
 echo -e "${GREEN}fractals::${NOFMT}${CYAN}installation complete!${NOFMT}"
 echo -e "${ORANGE}\treminder: append to PATH in ${CYAN}.bashrc${NOFMT}${ORANGE}: ${NOFMT}${CYAN}/home/tools/lua-language-server/bin:${NOFMT}"
 echo -e "${ORANGE}\treminder: farm symlinks for home directory, remove dead links in your actual ${CYAN}.config/${NOFMT} ${ORANGE}directory${NOFMT}"
-#echo -e "${ORANGE}\treminder: open neovim and run :PackerClean, :PackerSync, :UpdateRemotePlugins, :TSUpdateSync, :checkhealth${NOFMT}"
-echo -e "${ORANGE}\treminder: make sure to update \$HOME path: ${CYAN}$HOME${NOFMT} ${ORANGE}in${NOFMT} ${CYAN}~/.config/hatch/config.toml${NOFMT} ${ORANGE}of your host machine${NOFMT}"
+echo -e "${ORANGE}\treminder: open neovim and run :Lazy sync, :UpdateRemotePlugins, :TSUpdateSync, :checkhealth${NOFMT}"
 echo -e "${ORANGE}\treminder: and afterwards, please restart your terminal session${NOFMT}"

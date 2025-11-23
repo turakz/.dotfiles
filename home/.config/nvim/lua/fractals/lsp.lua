@@ -113,6 +113,11 @@ require("mason").setup({
       package_pending = "➜",
       package_uninstalled = "✗"
     }
+  },
+  pip = {
+    python_cmd = "/usr/bin/python",
+    --python_cmd = "/home/vagrant/dev/MSA/env/virtual/dev/bin/python", -- tell Mason about venv python
+    upgrade_pip = true,
   }
 })
 
@@ -128,6 +133,9 @@ require("mason-lspconfig").setup({
   },
   automatic_enable = true,
 })
+-- for mason installed tools:
+local mason_path = vim.fn.stdpath("data") .. "/mason/bin"
+vim.env.PATH = mason_path .. ":" .. vim.env.PATH
 
 -- apply on_attach and capabilities to Mason-managed clients
 vim.api.nvim_create_autocmd("LspAttach", {
