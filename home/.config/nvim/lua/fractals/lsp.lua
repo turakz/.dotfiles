@@ -115,8 +115,8 @@ require("mason").setup({
     }
   },
   pip = {
-    --python_cmd = /usr/bin/python
-    python_cmd = "/home/vagrant/dev/MSA/env/virtual/dev/bin/python", -- tell Mason about venv python
+    python_cmd = "/usr/bin/python",
+    --python_cmd = "/home/vagrant/dev/MSA/env/virtual/dev/bin/python", -- tell Mason about venv python
     upgrade_pip = true,
   }
 })

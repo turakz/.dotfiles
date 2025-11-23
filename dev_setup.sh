@@ -116,6 +116,14 @@ if ! sudo apt-get install -y $SOFTWARE_PACKAGES; then
   exit 1
 fi
 
+# Create version-agnostic lldb-dap symlink for DAP configurations
+if [ ! -L /usr/local/bin/lldb-dap ]; then
+  echo -e "${GREEN}fractals::${NOFMT}${CYAN}creating lldb-dap symlink...${NOFMT}"
+  sudo ln -s /usr/bin/lldb-dap-18 /usr/local/bin/lldb-dap
+else
+  echo -e "${GREEN}fractals::${NOFMT}${CYAN}lldb-dap symlink${NOFMT} ${ORANGE}already exists${NOFMT}"
+fi
+
 ##################
 # language support
 ##################
@@ -194,15 +202,19 @@ else
   echo -e "${ORANGE}fractals::${NOFMT}${CYAN}luarocks${NOFMT} ${ORANGE}cannot be installed,${NOFMT} ${CYAN}luarocks${NOFMT}${ORANGE} missing${NOFMT}"
 fi
 
-if ! hash npm 2> /dev/null; then
-  echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing lua-local-debugger...${NOFMT}"
-  ensure_tools_dir
-  git clone https://github.com/tomblind/local-lua-debugger-vscode.git
-  cd local-lua-debugger-vscode
-  npm install
-  npm run build
+if ! [ -d "${HOME}/tools/local-lua-debugger-vscode" ]; then
+  if hash npm 2> /dev/null; then
+    echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing lua-local-debugger...${NOFMT}"
+    ensure_tools_dir
+    git clone https://github.com/tomblind/local-lua-debugger-vscode.git
+    cd local-lua-debugger-vscode
+    npm install
+    npm run build
+  else
+    echo -e "${ORANGE}fractals::${NOFMT}${CYAN}lua-local-debugger${NOFMT} ${ORANGE}cannot be installed,${NOFMT} ${CYAN}npm${NOFMT}${ORANGE} missing${NOFMT}"
+  fi
 else
-  echo -e "${ORANGE}fractals::${NOFMT}${CYAN}lua-local-debugger${NOFMT} ${ORANGE}cannot be installed,${NOFMT} ${CYAN}npm${NOFMT}${ORANGE} missing${NOFMT}"
+  echo -e "${GREEN}fractals::${NOFMT}${CYAN}lua-local-debugger${NOFMT} ${ORANGE}already installed${NOFMT}"
 fi
 
 ####################################################
@@ -219,16 +231,22 @@ if ! hash nvim 2> /dev/null; then
     echo -e "${GREEN}fractals::${NOFMT}${CYAN}configuring neovim...${NOFMT}"
     nvim --headless -c 'call mkdir(stdpath("config"), "p") | quit'
 
-    echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing packer...${NOFMT}"
-    git clone --depth 1 https://github.com/wbthomason/packer.nvim \
-     ~/.local/share/nvim/site/pack/packer/start/packer.nvim
+    if [ ! -d ~/.local/share/nvim/site/pack/packer/start/packer.nvim ]; then
+      echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing packer...${NOFMT}"
+      git clone --depth 1 https://github.com/wbthomason/packer.nvim \
+       ~/.local/share/nvim/site/pack/packer/start/packer.nvim
+    else
+      echo -e "${GREEN}fractals::${NOFMT}${CYAN}packer${NOFMT} ${ORANGE}already installed${NOFMT}"
+    fi
 else
   echo -e "${GREEN}fractals::${NOFMT}${CYAN}neovim${NOCMFT} ${ORANGE}already installed${NOFMT}"
 fi
 echo -e "${GREEN}fractals::${NOFMT}${CYAN}running packer...${NOFMT}\n"
 # don't track updates to plugin compilation
 cd "${HOME}/.dotfiles"
-git update-index --assume-unchanged home/.config/nvim/plugin/packer_compiled.lua
+if ! git ls-files -v | grep -q "^h.*packer_compiled.lua"; then
+  git update-index --assume-unchanged home/.config/nvim/plugin/packer_compiled.lua
+fi
 
 ###############
 # flutter/dart
@@ -273,15 +291,19 @@ fi
 ##############################################
 # ble.sh: https://github.com/akinomyoga/ble.sh
 ##############################################
-echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing ble.sh in ${HOME}...${NOFMT}"
-cd ~
-wd=$(pwd)
-echo -e "${GREEN}fractals::current working directory:${NOFMT} ${CYAN}${wd}${NOFMT}"
-git clone --recursive --depth 1 --shallow-submodules https://github.com/akinomyoga/ble.sh.git
-make -C ble.sh install PREFIX=~/.local
-cd .dotfiles
-wd=$(pwd)
-echo -e "${GREEN}fractals::current working directory:${NOFMT} ${CYAN}${wd}${NOFMT}"
+if [ ! -d "${HOME}/ble.sh" ]; then
+  echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing ble.sh in ${HOME}...${NOFMT}"
+  cd ~
+  wd=$(pwd)
+  echo -e "${GREEN}fractals::current working directory:${NOFMT} ${CYAN}${wd}${NOFMT}"
+  git clone --recursive --depth 1 --shallow-submodules https://github.com/akinomyoga/ble.sh.git
+  make -C ble.sh install PREFIX=~/.local
+  cd .dotfiles
+  wd=$(pwd)
+  echo -e "${GREEN}fractals::current working directory:${NOFMT} ${CYAN}${wd}${NOFMT}"
+else
+  echo -e "${GREEN}fractals::${NOFMT}${CYAN}ble.sh${NOFMT} ${ORANGE}already installed${NOFMT}"
+fi
 
 ###########
 # starship:
