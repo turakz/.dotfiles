@@ -45,6 +45,19 @@ require("lazy").setup({
       "nvim-tree/nvim-web-devicons",
       "stevearc/dressing.nvim"
     },
+    config = function()
+      require("nvim-tree").setup({
+        renderer = {
+          group_empty = false,
+        },
+        filters = {
+          dotfiles = false,
+        },
+        view = {
+          adaptive_size = false,
+        },
+      })
+    end,
   },
 
   -- Better UI for vim.ui.select/input
