@@ -3,7 +3,12 @@
 -- require("mason-nvim-dap").setup{}
 
 -- nvimdapui: https://github.com/rcarriga/nvim-dap-ui
-require("dapui").setup{}
+require("dapui").setup({
+  console = {
+    enabled = true,
+    open_on_start = true,
+  }
+})
 
 -- nvimdap: https://github.com/mfussenegger/nvim-dap
 -- note for future self bc docs were not obvious
@@ -69,7 +74,8 @@ dap.adapters.gdb = {
 -- prefer lldb over gdb for template-heavy c++ codebases
 dap.adapters.lldb = {
   type = "executable",
-  command = "/usr/bin/lldb-vscode-14",
+  --command = "/usr/bin/lldb-vscode-14",
+  command = "/usr/local/bin/lldb-dap", -- renamed from vscode in 18
   name = "lldb",
   options = {
     initialize_timeout_sec = 30,
@@ -121,6 +127,8 @@ dap.configurations.c = {
       end
     end,
     stopOnEntry = false,
+    console = "integratedTerminal", -- render ANSI codes
+    externalConsole = true,
   },
   {
     name = "launch gdb",
@@ -190,3 +198,10 @@ dap.configurations.lua = {
     args = {},
   },
 }
+
+-- debug with a separate terminal
+--dap.defaults.fallback.external_terminal = {
+--  command = '/usr/bin/env',
+--  args = {'tmux', 'split-window', '-h'}
+--}
+--dap.defaults.fallback.force_external_terminal = true

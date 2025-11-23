@@ -17,7 +17,6 @@ return require("packer").startup(function(use)
 
   -- editing
   use "lukas-reineke/indent-blankline.nvim"
-  use "numToStr/Comment.nvim"
 
   -- completion engine
   use "hrsh7th/nvim-cmp"
@@ -75,8 +74,11 @@ return require("packer").startup(function(use)
   }
   use "mfussenegger/nvim-dap-python"
 
+  -- glyphs
+  use 'nvim-tree/nvim-web-devicons'
+
   -- statusline
-  use { "nvim-lualine/lualine.nvim", requires = { "nvim-tree/nvim-web-devicons", opt = true } }
+  use { "nvim-lualine/lualine.nvim", requires = { "nvim-tree/nvim-web-devicons" } }
 
   -- colorscheme
   use "folke/tokyonight.nvim"
