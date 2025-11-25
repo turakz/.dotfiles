@@ -43,7 +43,7 @@ Pipeline (stateless: parse → execute → transmute)
 - **Loose Coupling**: Clear layer boundaries, dependency injection via templates
 - **Data-Centric**: `ParseResults`, `Recipe` variants, `Metrics` flow through system
 - **Design for Testability**: Can test logic without running full pipeline
-- **93.4% Test Coverage**: IAR translator (query-driver refactor) - industry-leading coverage
+- **93.4% Test Coverage**: IAR translator (query-driver refactor)
 
 ---
 
