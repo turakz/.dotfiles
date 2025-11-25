@@ -332,42 +332,11 @@ When proposing ANY code change (refactoring, feature, bug fix):
 
 ---
 
-## 📊 Recent Refactoring History (v2.x)
-
-### Completed Major Refactorings
-- **v2.11**: Query-driver refactor (IAR translator now queries actual compiler for system includes)
-  - Replaced hardcoded include path assumptions with actual compiler querying
-  - Added `querySystemIncludes()`: executes compiler with `-E -xc -v /dev/null` to get real paths
-  - Fixed critical substring matching bug in CPU architecture detection (M33 was matching M3!)
-  - Changed from `cpuArch.find("Cortex-M3")` to exact `cpuArch == "Cortex-M3"` comparison
-  - Added architecture variants: M0+, M4F, M7F, M33F (FPU-enabled variants)
-  - Added 4 architecture-specific tests: M0, M3, M33, fallback
-  - Created mock compiler infrastructure (`mock_iccarm`, `mock_cl`) for testing
-  - Test coverage improvements: 87.2% → 93.4% for IAR translator (+6.2%)
-  - Overall test count: 200 → 237 tests (+37 tests)
-  - Fixed `writeFile()` visibility in test fixtures (moved from private to protected)
-- **v2.10**: Compiler translator refactoring (removed CRTP, simplified to stateless translators)
-  - Refactored from CRTP adapter pattern to simpler translator pattern
-  - IAR/MSVC translators are now stateless (no polymorphism needed)
-  - Fixed IAR detection bug (removed ambiguous flags from detection logic)
-  - Added CMSIS stub generation for IAR projects
-- **v2.9**: Compiler adapter architecture (IAR/MSVC support via Factory + Adapter patterns)
-- **v2.8**: Result<T> move optimization (rvalue overloads)
-- **v2.7**: CRTP for operations + template-based pipeline
-- **v2.6**: Variant extraction helper, config consolidation
-- **v2.5**: Error message formatting standardization
-- **v2.4**: Atomic writes, pre-flight validation, error propagation fixes
-- **v2.3**: Layer reorganization (parsing/ → operations/ → transmute/)
-- **v2.2**: Metrics reporting moved to app layer
-- **v2.1**: Parser abstraction layer (ParsingRuleAdapter)
-
----
 
 ## 📚 Additional Context Files
 
 - **~/.dotfiles/llm-prompts/pitm.md** - MUST READ: Pedagogical principles (testability, loose coupling, incremental development)
 - **CURRENT_REFACTORING_CONTEXT.md** - Current refactoring state, completed work, and pending items
-- **design/ARCHITECTURE_AUDIT_2025.md** - Comprehensive architecture audit with refactoring recommendations
 
 ---
 
