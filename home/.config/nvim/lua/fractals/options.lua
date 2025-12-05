@@ -65,8 +65,6 @@ opt.swapfile = false
 opt.undodir = vim.fn.expand(vim.fn.stdpath("state") .. "/undo")
 opt.undofile = true
 
-treesitter = false
-
 -----------------------------------------------------------
 -- neovim ui
 -----------------------------------------------------------

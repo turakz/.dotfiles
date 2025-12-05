@@ -120,7 +120,7 @@ fi
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-. "$HOME/.cargo/env"
+[ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"
 
 export EDITOR='nvim'
 
@@ -131,10 +131,10 @@ export PATH="$HOME/tools/android_sdk/android-studio-2022.1.1.21-linux/android-st
 
 # these lines must execute before ble and starship can work
 # autocompeltion
-source ~/.local/share/blesh/ble.sh
+[ -f ~/.local/share/blesh/ble.sh ] && source ~/.local/share/blesh/ble.sh
 # prompt
 export STARSHIP_CONFIG="${HOME}/.dotfiles/home/.config/starship/starship.toml"
-eval "$(starship init bash)"
+command -v starship &> /dev/null && eval "$(starship init bash)"
 # pixi/mojo
 export PATH="$HOME/.pixi/bin:$PATH"
 export PATH="$HOME/.local/share/nvim/mason/bin:$PATH"

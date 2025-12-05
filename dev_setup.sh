@@ -69,7 +69,6 @@ SOFTWARE_PACKAGES=" \
   cmake-format \
   cppcheck \
   fd-find \
-  firefox \
   flake8 \
   gdb-multiarch \
   g++ \
@@ -87,7 +86,6 @@ SOFTWARE_PACKAGES=" \
   mold \
   ncurses-dev \
   ninja-build \
-  nodejs \
   pkg-config \
   python3-lldb-18 \
   ripgrep \
@@ -197,9 +195,9 @@ if ! hash luarocks 2> /dev/null; then
   echo -e "${GREEN}fractals::${NOFMT}${CYAN}cleaning up luarocks tmp dir...${NOFMT}"
   rm -rf /tmp/luarocks-3.11.1*
   export PATH="$HOME/.luarocks/bin:$PATH"
-  echo -e "${GREEN}fractals::${NOFMT}${CYAN}added $HOME/.luarocks.bin: to PATH...${NOFMT}"
+  echo -e "${GREEN}fractals::${NOFMT}${CYAN}added $HOME/.luarocks/bin: to PATH...${NOFMT}"
 else
-  echo -e "${ORANGE}fractals::${NOFMT}${CYAN}luarocks${NOFMT} ${ORANGE}cannot be installed,${NOFMT} ${CYAN}luarocks${NOFMT}${ORANGE} missing${NOFMT}"
+  echo -e "${GREEN}fractals::${NOFMT}${CYAN}luarocks${NOFMT} ${ORANGE}already installed${NOFMT}"
 fi
 
 if ! [ -d "${HOME}/tools/local-lua-debugger-vscode" ]; then
@@ -234,7 +232,7 @@ if ! hash nvim 2> /dev/null; then
     # lazy.nvim bootstraps itself automatically on first launch
     echo -e "${GREEN}fractals::${NOFMT}${CYAN}lazy.nvim will bootstrap on first nvim launch...${NOFMT}"
 else
-  echo -e "${GREEN}fractals::${NOFMT}${CYAN}neovim${NOCMFT} ${ORANGE}already installed${NOFMT}"
+  echo -e "${GREEN}fractals::${NOFMT}${CYAN}neovim${NOFMT} ${ORANGE}already installed${NOFMT}"
 fi
 
 ###############
@@ -270,7 +268,7 @@ fi
 # pixie/mojo
 ############
 echo -e "\n${GREEN}fractals::${NOFMT}${CYAN}installing pixie package manager for mojo dev...${NOFMT}"
-if ! hash pixie 2> /dev/null; then
+if ! hash pixi 2> /dev/null; then
   curl -fsSL https://pixi.sh/install.sh | sh
   echo 'default-channels = ["https://conda.modular.com/max-nightly", "conda-forge"]' >> ${HOME}/.pixi/config.toml
 else
@@ -301,7 +299,7 @@ if ! hash starship 2> /dev/null; then
   echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing starship...${NOFMT}"
   curl -sS https://starship.rs/install.sh | sh
 else
-  echo -e "${GREEN}fractals::${NOFMT}${CYAN}starship${NOCMFT} ${ORANGE}already installed${NOFMT}"
+  echo -e "${GREEN}fractals::${NOFMT}${CYAN}starship${NOFMT} ${ORANGE}already installed${NOFMT}"
 fi
 
 ###########

@@ -105,34 +105,7 @@ require('flutter-tools').setup {
 
 
 -- lspconfig: PREFERRED
--- mason integration
-require("mason").setup({
-  ui = {
-    icons = {
-      package_installed = "✓",
-      package_pending = "➜",
-      package_uninstalled = "✗"
-    }
-  },
-  pip = {
-    python_cmd = "/usr/bin/python",
-    --python_cmd = "/home/vagrant/dev/MSA/env/virtual/dev/bin/python", -- tell Mason about venv python
-    upgrade_pip = true,
-  }
-})
-
-require("mason-lspconfig").setup({
-  ensure_installed = {
-    "bashls",
-    "clangd",
-    "cmake",
-    "lua_ls",
-    "rust_analyzer",
-    "powershell_es",
-    "pyright"
-  },
-  automatic_enable = true,
-})
+-- mason setup is handled in mason.lua, this just configures the PATH
 -- for mason installed tools:
 local mason_path = vim.fn.stdpath("data") .. "/mason/bin"
 vim.env.PATH = mason_path .. ":" .. vim.env.PATH

@@ -53,7 +53,6 @@ table.insert(dap.configurations.python, {
   module = 'pytest',
 })
 
-local dap = require("dap")
 dap.adapters.gdb = {
   type = "executable",
   command = "gdb",
@@ -102,7 +101,6 @@ dap.adapters["local-lua"] = {
   end,
 }
 
-local dap = require("dap")
 dap.configurations.c = {
   {
     name = "launch lldb",

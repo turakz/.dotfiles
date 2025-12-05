@@ -12,9 +12,15 @@ set print sevenbit-strings off
 # Load GCC STL pretty printers (python-based)
 python
 import sys
-sys.path.insert(0, '/usr/share/gcc-12/python')
-from libstdcxx.v6.printers import register_libstdcxx_printers
-register_libstdcxx_printers(None)
+import glob
+
+# Find the latest gcc python printers directory
+gcc_paths = glob.glob('/usr/share/gcc-*/python')
+if gcc_paths:
+    gcc_paths.sort(reverse=True)  # Latest version first
+    sys.path.insert(0, gcc_paths[0])
+    from libstdcxx.v6.printers import register_libstdcxx_printers
+    register_libstdcxx_printers(None)
 end
 
 # Note: String/path printers may show errors with clang++-compiled binaries

@@ -3,8 +3,8 @@ local lint = require("lint")
 -- Configure linters by filetype
 lint.linters_by_ft = {
   python = { "flake8" },  -- or "ruff" for faster linting
-  c = { "cpplint" },
-  cpp = { "cpplint" },
+  c = { "cppcheck" },
+  cpp = { "cppcheck" },
   bash = { "shellcheck" },
   sh = { "shellcheck" },
   lua = { "luacheck" },

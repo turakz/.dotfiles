@@ -8,8 +8,7 @@ require("toggleterm").setup {
   direction = "float",
 }
 
--- which-key (keymap discovery)
-require("which-key").setup()
+-- which-key setup is in editor.lua
 
 -- gitsigns (git integration)
 require("gitsigns").setup()

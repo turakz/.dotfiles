@@ -6,9 +6,13 @@ require("mason").setup({
       package_pending = "➜",
       package_uninstalled = "✗"
     }
+  },
+  pip = {
+    python_cmd = "/usr/bin/python",
+    upgrade_pip = true,
   }
 })
--- make sure these do not conflict with lspconfig setups
+
 require("mason-lspconfig").setup({
   ensure_installed = {
     "bashls",
@@ -18,5 +22,6 @@ require("mason-lspconfig").setup({
     "rust_analyzer",
     "powershell_es",
     "pyright"
-  }
+  },
+  automatic_enable = true,
 })

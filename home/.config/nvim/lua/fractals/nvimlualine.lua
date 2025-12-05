@@ -24,7 +24,7 @@ require'nvim-web-devicons'.setup {
  strict = true;
  -- set the light or dark variant manually, instead of relying on `background`
  -- (default to nil)
- variant = "light|dark";
+ variant = "dark";
  -- override blend value for all highlight groups :h highlight-blend.
  -- setting this value to `0` will make all icons opaque. in practice this means
  -- that icons width will not be affected by pumblend option (see issue #608)
