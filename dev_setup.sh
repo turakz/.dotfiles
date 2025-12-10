@@ -22,16 +22,6 @@ else
   export CYAN=''
 fi
 
-#if ! hash git 2> /dev/null; then
-#  echo -e "${RED}FATAL ERROR: please install git before running, terminating...${NOFMT}"
-#  exit 1
-#else
-#  echo -e "${GREEN}fractals::${NOFMT}${CYAN}checking for latest .dofiles/...${NOFMT}"
-#  git fetch
-#  git pull
-#  git submodule update --init --recursive
-#fi
-
 # add firefox repository for latest/manage as deb pkg
 #echo -e "installing ${GREEN}fractals::${NOFMT}environment::adding apt repository... mozillateam (firefox)"
 #sudo add-apt-repository ppa:mozillateam/ppa
@@ -114,7 +104,7 @@ if ! sudo apt-get install -y $SOFTWARE_PACKAGES; then
   exit 1
 fi
 
-# Create version-agnostic lldb-dap symlink for DAP configurations
+# create version-agnostic lldb-dap symlink for DAP configurations
 if [ ! -L /usr/local/bin/lldb-dap ]; then
   echo -e "${GREEN}fractals::${NOFMT}${CYAN}creating lldb-dap symlink...${NOFMT}"
   sudo ln -s /usr/bin/lldb-dap-18 /usr/local/bin/lldb-dap
@@ -145,16 +135,18 @@ if ! sudo apt-get install -y $LANGUAGE_PACKAGES; then
   exit 1
 fi
 
-echo -e "${GREEN}fractals::${NOFMT}${CYAN}upgrading pip...${NOFMT}"
-python3 -m pip install --user --upgrade pip setuptools wheel
+# pip upgrade disabled - modern Ubuntu pip is sufficient, and PEP 668 blocks system pip modifications
+# echo -e "${GREEN}fractals::${NOFMT}${CYAN}upgrading pip...${NOFMT}"
+# python3 -m pip install --user --upgrade pip setuptools wheel
 
-echo -e "${GREEN}fractals::${NOFMT}${CYAN}snap installing pyright... ${NOFMT}"
-sudo snap install pyright --classic
+# snap disabled - snapd doesn't run in WSL2 by default; pyright installed via Mason instead
+# echo -e "${GREEN}fractals::${NOFMT}${CYAN}snap installing pyright... ${NOFMT}"
+# sudo snap install pyright --classic
 
 
-##################################
-# Helper function for tools directory
-##################################
+#####################################
+# helper function for tools directory
+#####################################
 ensure_tools_dir() {
   mkdir -p "${HOME}/tools"
   cd "${HOME}/tools"
@@ -177,9 +169,16 @@ if ! hash gdb 2> /dev/null; then
   rm gdb-15.1.tar.gz
 fi
 
-######
+########
+# nodejs - install early since lua-local-debugger needs npm
+########
+echo -e "installing ${GREEN}fractals::${NOFMT}environment::installing nodejs toolchain..."
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt-get install -y nodejs
+
+#################
 # lua + debugger
-#####
+################
 if ! hash luarocks 2> /dev/null; then
   echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing luarocks...${NOFMT}"
   cd /tmp
@@ -194,6 +193,7 @@ if ! hash luarocks 2> /dev/null; then
   sudo make install
   echo -e "${GREEN}fractals::${NOFMT}${CYAN}cleaning up luarocks tmp dir...${NOFMT}"
   rm -rf /tmp/luarocks-3.11.1*
+  cd ~
   export PATH="$HOME/.luarocks/bin:$PATH"
   echo -e "${GREEN}fractals::${NOFMT}${CYAN}added $HOME/.luarocks/bin: to PATH...${NOFMT}"
 else
@@ -245,12 +245,7 @@ fi
 #echo -e "running ${GREEN}fractals::${NOFMT}environment::special_cases... flutter doctor"
 #flutter doctor
 
-########
-# nodejs
-########
-echo -e "installing ${GREEN}fractals::${NOFMT}environment::installing nodejs toolchain..."
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-sudo apt-get install -y nodejs
+# nodejs moved earlier in script (before lua-local-debugger)
 
 ######
 # rust
@@ -264,16 +259,9 @@ else
     echo -e "${GREEN}fractals::${NOFMT}${CYAN}rust${NOFMT} ${ORANGE}already installed${NOFMT}"
 fi
 
-#############
-# pixie/mojo
-############
-echo -e "\n${GREEN}fractals::${NOFMT}${CYAN}installing pixie package manager for mojo dev...${NOFMT}"
-if ! hash pixi 2> /dev/null; then
-  curl -fsSL https://pixi.sh/install.sh | sh
-  echo 'default-channels = ["https://conda.modular.com/max-nightly", "conda-forge"]' >> ${HOME}/.pixi/config.toml
-else
-  echo -e "${GREEN}fractals::${NOFMT}${CYAN}pixie${NOFMT} ${ORANGE} already installed${NOFMT}"
-fi
+# pixi/mojo disabled - install script returning 403, install manually if needed:
+# curl -fsSL https://pixi.sh/install.sh | sh
+# echo 'default-channels = ["https://conda.modular.com/max-nightly", "conda-forge"]' >> ${HOME}/.pixi/config.toml
 
 ##############################################
 # ble.sh: https://github.com/akinomyoga/ble.sh
@@ -306,7 +294,6 @@ fi
 # COMPLETE
 ##########
 echo -e "${GREEN}fractals::${NOFMT}${CYAN}installation complete!${NOFMT}"
-echo -e "${ORANGE}\treminder: append to PATH in ${CYAN}.bashrc${NOFMT}${ORANGE}: ${NOFMT}${CYAN}/home/tools/lua-language-server/bin:${NOFMT}"
 echo -e "${ORANGE}\treminder: farm symlinks for home directory, remove dead links in your actual ${CYAN}.config/${NOFMT} ${ORANGE}directory${NOFMT}"
-echo -e "${ORANGE}\treminder: open neovim and run :Lazy sync, :UpdateRemotePlugins, :TSUpdateSync, :checkhealth${NOFMT}"
-echo -e "${ORANGE}\treminder: and afterwards, please restart your terminal session${NOFMT}"
+echo -e "${ORANGE}\treminder: open neovim, let lazy.nvim boostrap, then run :Lazy sync, :UpdateRemotePlugins, :TSUpdateSync, :checkhealth${NOFMT}"
+echo -e "${ORANGE}\treminder: please restart your terminal session${NOFMT}"

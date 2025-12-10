@@ -141,3 +141,10 @@ export PATH="$HOME/.local/share/nvim/mason/bin:$PATH"
 
 # lldb debuggers
 #export PYTHONPATH=/usr/lib/llvm-14/lib/python3/dist-packages:$PYTHONPATH
+
+# claude cli: disable telemetry
+# -> disable all non-essential traffic (recommended)
+export CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1
+# -> or individually:
+export DISABLE_TELEMETRY=1          # disable metrics
+# export DISABLE_ERROR_REPORTING=1    # disable error logging
