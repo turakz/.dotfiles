@@ -16,6 +16,7 @@ lint.linters_by_ft = {
 -- prepend custom args to defaults (which include filename handling)
 local cppcheck = lint.linters.cppcheck
 cppcheck.args = vim.list_extend({
+  "--project=build/compile_commands.json",
   "--enable=warning,style,performance,portability",
   "--std=c++20",
   "--inline-suppr",
