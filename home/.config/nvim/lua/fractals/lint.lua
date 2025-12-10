@@ -13,15 +13,14 @@ lint.linters_by_ft = {
 }
 
 -- Custom cppcheck configuration for better C++ support
-lint.linters.cppcheck.args = {
+-- prepend custom args to defaults (which include filename handling)
+local cppcheck = lint.linters.cppcheck
+cppcheck.args = vim.list_extend({
   "--enable=warning,style,performance,portability",
-  "--language=c++",
-  "--std=c++17",  -- adjust to your C++ standard
+  "--std=c++20",
   "--inline-suppr",
   "--quiet",
-  "--template=gcc",
-  "--error-exitcode=1"
-}
+}, cppcheck.args or {})
 
 -- Custom luacheck config (optional - for Neovim Lua config)
 lint.linters.luacheck.args = {
