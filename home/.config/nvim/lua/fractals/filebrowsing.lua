@@ -41,6 +41,10 @@ telescope.setup({
   },
 
   pickers = {
+    find_files = {
+      hidden = true,      -- show hidden files
+      no_ignore = true,   -- show gitignored files
+    },
     live_grep = {
       -- Ensure it searches recursively
       additional_args = function()

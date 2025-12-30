@@ -13,15 +13,16 @@ lint.linters_by_ft = {
 }
 
 -- Custom cppcheck configuration for better C++ support
--- prepend custom args to defaults (which include filename handling)
+-- replace args entirely (defaults include filename which conflicts with --project)
 local cppcheck = lint.linters.cppcheck
-cppcheck.args = vim.list_extend({
+cppcheck.args = {
   "--project=build/compile_commands.json",
   "--enable=warning,style,performance,portability",
   "--std=c++20",
   "--inline-suppr",
   "--quiet",
-}, cppcheck.args or {})
+  "--template={file}:{line}:{column}: [{id}] {severity}: {message}",
+}
 
 -- Custom luacheck config (optional - for Neovim Lua config)
 lint.linters.luacheck.args = {

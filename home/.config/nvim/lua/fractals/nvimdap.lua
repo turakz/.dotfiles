@@ -26,15 +26,16 @@ local dap = require("dap")
 --})
 
 -- dap-python: https://github.com/mfussenegger/nvim-dap-python
--- dap-python: https://github.com/nvim-dap-python
--- venvs
--- require("dap-python").setup("/path/to/venv/bin/python")
--- if using the above, then `/path/to/venv/bin/python -m debugpy --version`
--- must work in the shell
--- normal
-require("dap-python").setup("python")
--- if using the above, then `python -m debugpy --version`
--- must work in the shell
+-- auto-detect .venv in cwd, fallback to system python
+local function get_python_path()
+  local venv = vim.fn.getcwd() .. '/.venv/bin/python'
+  if vim.fn.executable(venv) == 1 then
+    return venv
+  end
+  return 'python'
+end
+
+require("dap-python").setup(get_python_path())
 table.insert(dap.configurations.python, {
   type = 'python',
   justMyCode = true,

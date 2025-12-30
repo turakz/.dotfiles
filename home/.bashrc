@@ -127,7 +127,12 @@ export EDITOR='nvim'
 # append extra PATH dirs
 export PATH="/usr/local/bin:$PATH"
 export PATH="$HOME/.local/bin:$PATH"
-export PATH="$HOME/tools/android_sdk/android-studio-2022.1.1.21-linux/android-studio/jbr/bin:$PATH"
+
+# flutter/android sdk (uncomment when installed via dev_setup.sh)
+# export ANDROID_HOME="$HOME/tools/android-sdk"
+# export PATH="$HOME/tools/flutter/bin:$PATH"
+# export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$PATH"
+# export PATH="$ANDROID_HOME/platform-tools:$PATH"
 
 # these lines must execute before ble and starship can work
 # autocompeltion

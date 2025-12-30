@@ -236,14 +236,46 @@ else
 fi
 
 ###############
-# flutter/dart
+# flutter/dart (WSL2-compatible, no snap)
 ##############
-#echo -e "installing ${GREEN}fractals::${NOFMT}environment::special_cases... flutter/dart-sdk"
-#sudo snap install flutter --classic
-#echo -e "running ${GREEN}fractals::${NOFMT}environment::special_cases... flutter init"
-#flutter sdk-path
-#echo -e "running ${GREEN}fractals::${NOFMT}environment::special_cases... flutter doctor"
-#flutter doctor
+# echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing flutter sdk...${NOFMT}"
+# ensure_tools_dir
+# if [ ! -d "${HOME}/tools/flutter" ]; then
+#   git clone https://github.com/flutter/flutter.git -b stable
+# else
+#   echo -e "${GREEN}fractals::${NOFMT}${CYAN}flutter sdk${NOFMT} ${ORANGE}already cloned${NOFMT}"
+# fi
+# export PATH="$HOME/tools/flutter/bin:$PATH"
+# flutter precache
+#
+# # android sdk (command-line tools only, no android studio)
+# echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing android command-line tools...${NOFMT}"
+# ANDROID_SDK_ROOT="${HOME}/tools/android-sdk"
+# if [ ! -d "${ANDROID_SDK_ROOT}/cmdline-tools/latest" ]; then
+#   cd ~/tools
+#   wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O cmdline-tools.zip
+#   unzip -q cmdline-tools.zip
+#   mkdir -p "${ANDROID_SDK_ROOT}/cmdline-tools"
+#   mv cmdline-tools "${ANDROID_SDK_ROOT}/cmdline-tools/latest"
+#   rm cmdline-tools.zip
+# else
+#   echo -e "${GREEN}fractals::${NOFMT}${CYAN}android cmdline-tools${NOFMT} ${ORANGE}already installed${NOFMT}"
+# fi
+#
+# export ANDROID_HOME="${ANDROID_SDK_ROOT}"
+# export PATH="${ANDROID_HOME}/cmdline-tools/latest/bin:${ANDROID_HOME}/platform-tools:$PATH"
+#
+# # install required sdk components
+# echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing android sdk components...${NOFMT}"
+# yes | sdkmanager --licenses > /dev/null 2>&1 || true
+# sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
+#
+# # accept flutter android licenses
+# echo -e "${GREEN}fractals::${NOFMT}${CYAN}accepting flutter android licenses...${NOFMT}"
+# yes | flutter doctor --android-licenses > /dev/null 2>&1 || true
+#
+# echo -e "${GREEN}fractals::${NOFMT}${CYAN}running flutter doctor...${NOFMT}"
+# flutter doctor
 
 # nodejs moved earlier in script (before lua-local-debugger)
 
