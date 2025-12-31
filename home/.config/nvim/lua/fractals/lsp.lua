@@ -74,18 +74,7 @@ vim.filetype.add({
 })
 
 vim.lsp.config.mojo = {
-    cmd = function()
-        -- check cwd for .pixi/envs/default/bin/mojo-lsp-server
-        local cwd_lsp = vim.fn.getcwd() .. '/.pixi/envs/default/bin/mojo-lsp-server'
-        if vim.fn.executable(cwd_lsp) == 1 then
-            return { cwd_lsp }
-        end
-        -- warn in both UI and LSP log
-        local msg = 'mojo-lsp-server not found in ' .. vim.fn.getcwd() .. '/.pixi/envs/default/bin/'
-        vim.notify(msg, vim.log.levels.WARN)
-        vim.lsp.log.warn(msg)
-        return nil
-    end,
+    cmd = { vim.fn.getcwd() .. '/.pixi/envs/default/bin/mojo-lsp-server' },
     filetypes = { 'mojo' },
     root_markers = { 'pixi.toml', 'pyproject.toml', '.git' },
     single_file_support = true,
