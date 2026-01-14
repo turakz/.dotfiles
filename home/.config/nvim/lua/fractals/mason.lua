@@ -21,7 +21,9 @@ require("mason-lspconfig").setup({
     "lua_ls",
     "rust_analyzer",
     "powershell_es",
-    "pyright"
+    "pyright",
+    "marksman",
+    "yamlls"
   },
   automatic_enable = true,
 })

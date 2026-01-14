@@ -130,6 +130,54 @@ map('n', '<F9>', dap.toggle_breakpoint, { desc = "dap toggle breakpoint" })
 map('n', '<F10>', dapui.toggle, { desc = "dap ui toggle" })
 map('n', '<F12>', dap.clear_breakpoints, { desc = "dap clear breakpoints" })
 
+-----------------------------------------------------------
+-- todo-comments mappings
+-----------------------------------------------------------
+-- Search todos with Telescope
+map('n', '<leader>ft', ':TodoTelescope<CR>', { desc = "find todos" })
+-- Jump to next/prev todo
+map('n', ']t', function() require("todo-comments").jump_next() end, { desc = "next todo" })
+map('n', '[t', function() require("todo-comments").jump_prev() end, { desc = "previous todo" })
+
+-----------------------------------------------------------
+-- trouble.nvim mappings
+-----------------------------------------------------------
+map('n', '<leader>xx', ':Trouble diagnostics toggle<CR>', { desc = "toggle trouble diagnostics" })
+map('n', '<leader>xw', ':Trouble diagnostics toggle filter.buf=0<CR>', { desc = "buffer diagnostics (trouble)" })
+map('n', '<leader>xl', ':Trouble loclist toggle<CR>', { desc = "toggle location list (trouble)" })
+map('n', '<leader>xq', ':Trouble qflist toggle<CR>', { desc = "toggle quickfix (trouble)" })
+map('n', '<leader>xr', ':Trouble lsp_references<CR>', { desc = "LSP references (trouble)" })
+
+-----------------------------------------------------------
+-- actions-preview mappings
+-----------------------------------------------------------
+-- Override default code action with preview
+map('n', '<leader>cap', function() require("actions-preview").code_actions() end, { desc = "code actions preview" })
+
+-----------------------------------------------------------
+-- refactoring.nvim mappings
+-----------------------------------------------------------
+-- Extract function (visual mode)
+map('x', '<leader>re', function() require('refactoring').refactor('Extract Function') end, { desc = "extract function" })
+map('x', '<leader>rf', function() require('refactoring').refactor('Extract Function To File') end, { desc = "extract function to file" })
+-- Extract variable
+map('x', '<leader>rv', function() require('refactoring').refactor('Extract Variable') end, { desc = "extract variable" })
+-- Inline variable
+map('n', '<leader>ri', function() require('refactoring').refactor('Inline Variable') end, { desc = "inline variable" })
+
+-----------------------------------------------------------
+-- venv-selector mappings (Python only)
+-----------------------------------------------------------
+map('n', '<leader>vs', ':VenvSelect<CR>', { desc = "select python venv" })
+map('n', '<leader>vc', ':VenvSelectCached<CR>', { desc = "select cached venv" })
+
+-----------------------------------------------------------
+-- persistence.nvim (session) mappings
+-----------------------------------------------------------
+map('n', '<leader>qs', function() require("persistence").load() end, { desc = "restore session" })
+map('n', '<leader>ql', function() require("persistence").load({ last = true }) end, { desc = "restore last session" })
+map('n', '<leader>qd', function() require("persistence").stop() end, { desc = "don't save session" })
+
 -- Disable arrow keys
 --map('', '<up>', '<nop>')
 --map('', '<down>', '<nop>')
@@ -148,11 +196,15 @@ require("which-key").setup({
 -- Updated spec format (newer which-key version)
 local wk = require("which-key")
 wk.add({
-  { "<leader>c", group = "Code Diag" },
+  { "<leader>c", group = "Code/Diag" },
   { "<leader>d", group = "Debug/DAP" },
   { "<leader>f", group = "Find (Telescope)" },
   { "<leader>g", group = "Git" },
   { "<leader>t", group = "Toggle" },
+  { "<leader>x", group = "Trouble/Diagnostics" },
+  { "<leader>r", group = "Refactor" },
+  { "<leader>v", group = "Venv (Python)" },
+  { "<leader>q", group = "Quit/Session" },
 })
 
 -- Add diagnostic mappings

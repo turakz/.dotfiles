@@ -2,13 +2,13 @@ local lint = require("lint")
 
 -- Configure linters by filetype
 lint.linters_by_ft = {
-  python = { "flake8" },  -- or "ruff" for faster linting
+  -- python = { "flake8" },  -- or "ruff" for faster linting
   c = { "cppcheck" },
   cpp = { "cppcheck" },
-  bash = { "shellcheck" },
-  sh = { "shellcheck" },
-  lua = { "luacheck" },
-  cmake = { "cmakelint" },
+  -- bash = { "shellcheck" },
+  -- sh = { "shellcheck" },
+  -- lua = { "luacheck" },
+  -- cmake = { "cmakelint" },
   -- rust uses clippy via rust_analyzer LSP, so not needed here
 }
 

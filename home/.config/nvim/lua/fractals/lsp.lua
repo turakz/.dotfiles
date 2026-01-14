@@ -103,6 +103,34 @@ require('flutter-tools').setup {
   capabilities = capabilities,
 }
 
+-- manual LSP configurations for servers needing custom settings
+local lspconfig = require('lspconfig')
+
+-- YAML LSP with schema support
+lspconfig.yamlls.setup({
+  capabilities = capabilities,
+  on_attach = on_attach,
+  settings = {
+    yaml = {
+      schemas = {
+        ["https://json.schemastore.org/github-workflow.json"] = "/.github/workflows/*",
+        ["https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json"] = "docker-compose*.yml",
+        kubernetes = "/*.yaml",
+      },
+      format = { enable = true },
+      validate = true,
+      hover = true,
+      completion = true,
+    },
+  },
+})
+
+-- marksman (Markdown LSP) - default settings work great
+lspconfig.marksman.setup({
+  capabilities = capabilities,
+  on_attach = on_attach,
+})
+
 
 -- lspconfig: PREFERRED
 -- mason setup is handled in mason.lua, this just configures the PATH
