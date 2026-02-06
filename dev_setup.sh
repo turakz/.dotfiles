@@ -126,13 +126,23 @@ LANGUAGE_PACKAGES=" \
   python3-mypy \
   python3-pip \
   python3-venv \
-  python3-debugpy \
   "
+
+# python3-debugpy only available in Ubuntu 23.04+
+if [[ $(lsb_release -rs) >= "23.04" ]]; then
+  LANGUAGE_PACKAGES+="python3-debugpy "
+fi
 
 echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing lua, python...${NOFMT}"
 if ! sudo apt-get install -y $LANGUAGE_PACKAGES; then
   echo -e "${RED}FATAL ERROR: Failed to install language support packages${NOFMT}"
   exit 1
+fi
+
+# install debugpy via pip for older Ubuntu versions
+if [[ $(lsb_release -rs) < "23.04" ]]; then
+  echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing debugpy via pip (Ubuntu < 23.04)...${NOFMT}"
+  pip install --user debugpy
 fi
 
 # pip upgrade disabled - modern Ubuntu pip is sufficient, and PEP 668 blocks system pip modifications

@@ -78,6 +78,7 @@ vim.lsp.config.mojo = {
     filetypes = { 'mojo' },
     root_markers = { 'pixi.toml', 'pyproject.toml', '.git' },
     single_file_support = true,
+    capabilities = capabilities,
 }
 
 vim.lsp.enable('mojo')
