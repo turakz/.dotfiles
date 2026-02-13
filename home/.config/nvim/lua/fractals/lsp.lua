@@ -105,12 +105,11 @@ require('flutter-tools').setup {
 }
 
 -- manual LSP configurations for servers needing custom settings
-local lspconfig = require('lspconfig')
+-- (uses vim.lsp.config / vim.lsp.enable — the new API in nvim 0.11+)
 
 -- YAML LSP with schema support
-lspconfig.yamlls.setup({
+vim.lsp.config('yamlls', {
   capabilities = capabilities,
-  on_attach = on_attach,
   settings = {
     yaml = {
       schemas = {
@@ -125,11 +124,20 @@ lspconfig.yamlls.setup({
     },
   },
 })
+vim.lsp.enable('yamlls')
 
 -- marksman (Markdown LSP) - default settings work great
-lspconfig.marksman.setup({
+vim.lsp.config('marksman', {
   capabilities = capabilities,
-  on_attach = on_attach,
+})
+vim.lsp.enable('marksman')
+
+-- clangd: default log level is 'info' which floods ~/.local/state/nvim/lsp.log
+-- (nvim logs every LSP stderr line at ERROR level, and clangd is chatty on stderr).
+-- --log=error keeps only real errors.
+vim.lsp.config('clangd', {
+  cmd = { 'clangd', '--log=error' },
+  capabilities = capabilities,
 })
 
 

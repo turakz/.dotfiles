@@ -1,83 +1,87 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# TODO(fractals): make into a function/organize into utilities
-if [[ -t 2 ]] && [[ -z ${NO_COLOR-} ]] && [[ ${TERM-} != "dumb" ]]; then
-  NOFMT='\033[0m'
-  RED='\033[0;31m'
-  ORANGE='\033[0;33m'
-  YELLOW='\033[1;33m'
-  GREEN='\033[0;32m'
-  BLUE='\033[0;34m'
-  PURPLE='\033[0;35m'
-  CYAN='\033[0;36m'
-else
-  export NOFMT=''
-  export RED=''
-  export ORANGE=''
-  export YELLOW=''
-  export GREEN=''
-  export BLUE=''
-  export PURPLE=''
-  export CYAN=''
-fi
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=./_utils.sh
+source "${SCRIPT_DIR}/_utils.sh"
 
-# add firefox repository for latest/manage as deb pkg
-#echo -e "installing ${GREEN}fractals::${NOFMT}environment::adding apt repository... mozillateam (firefox)"
-#sudo add-apt-repository ppa:mozillateam/ppa
-#echo '
-#Package: *
-#Pin: release o=LP-PPA-mozillateam
-#Pin-Priority: 1001
-#' | sudo tee /etc/apt/preferences.d/mozilla-firefox
-#echo -e "enable mozillateam automatic updates... firefox"
-#echo 'Unattended-Upgrade::Allowed-Origins:: "LP-PPA-mozillateam:${distro_codename}";' | sudo tee /etc/apt/apt.conf.d/51unattended-upgrades-firefox
+################################################################################
+# Version detection & per-distro configuration
+#
+# Detects Ubuntu version via lsb_release; can be overridden with:
+#   UBUNTU_VERSION=24.04 ./dev_setup.sh
+# Only 24.04 and 26.04 are supported. Older distros need a case branch added.
+################################################################################
+UBUNTU_VERSION="${UBUNTU_VERSION:-$(lsb_release -rs)}"
+log_info "detected Ubuntu ${UBUNTU_VERSION}"
 
+case "${UBUNTU_VERSION}" in
+  24.04)
+    LLVM_VERSION=18
+    NODE_MAJOR=20
+    LUAROCKS_VERSION=3.11.1
+    LIBCXX_PRINTERS_BRANCH=release/18.x
+    ;;
+  26.04)
+    LLVM_VERSION=21
+    NODE_MAJOR=24
+    LUAROCKS_VERSION=3.13.0
+    LIBCXX_PRINTERS_BRANCH=release/21.x
+    ;;
+  *)
+    log_fatal "unsupported Ubuntu version: ${UBUNTU_VERSION}. Supported: 24.04, 26.04. Add a case branch above to extend."
+    exit 1
+    ;;
+esac
 
-###########
-# software
-##########
-echo -e "${GREEN}fractals::${NOFMT}${CYAN}updating packages...${NOFMT}"
+log_info "using LLVM/Clang ${LLVM_VERSION}, Node ${NODE_MAJOR}.x, luarocks ${LUAROCKS_VERSION}"
+
+################################################################################
+# System packages (apt)
+################################################################################
+log_info "updating apt package index..."
 sudo apt update -y
 
-#echo -e "${GREEN}fractals::${NOFMT}${CYAN}upgrading to ubuntu latest...${NOFMT}"
-#sudo apt upgrade -y
-
-SOFTWARE_PACKAGES=" \
+# Base development toolchain. LLVM-versioned packages are templated on
+# ${LLVM_VERSION}; everything else is version-agnostic in the current archive.
+SOFTWARE_PACKAGES="\
+  bash-completion \
   bison \
   black \
-  curl \
-  bash-completion \
   build-essential \
   ccache \
-  clang-18 \
-  clang-format-18 \
-  clang-tidy-18 \
-  clangd-18 \
+  clang-${LLVM_VERSION} \
+  clang-format-${LLVM_VERSION} \
+  clang-tidy-${LLVM_VERSION} \
+  clangd-${LLVM_VERSION} \
   cmake \
   cmake-doc \
   cmake-format \
   cppcheck \
+  curl \
   fd-find \
   flake8 \
-  gdb-multiarch \
   g++ \
+  gdb \
+  gdb-multiarch \
   git \
   git-lfs \
   htop \
-  lld-18 \
-  lldb-18 \
-  llvm-18 \
-  llvm-18-dev \
+  libc++-${LLVM_VERSION}-dev \
+  libc++abi-${LLVM_VERSION}-dev \
   libevent-dev \
-  libgmp3-dev \
-  libmpfr-doc \
+  libgmp-dev \
   libmpfr-dev \
+  libmpfr-doc \
+  libncurses-dev \
+  lld-${LLVM_VERSION} \
+  lldb-${LLVM_VERSION} \
+  llvm-${LLVM_VERSION} \
+  llvm-${LLVM_VERSION}-dev \
   mold \
-  ncurses-dev \
   ninja-build \
   pkg-config \
-  python3-lldb-18 \
+  python3-lldb-${LLVM_VERSION} \
   ripgrep \
   shellcheck \
   shfmt \
@@ -93,249 +97,195 @@ SOFTWARE_PACKAGES=" \
   wget \
   xclip \
   xsel \
+  xz-utils \
   zip \
   zsh \
-  xz-utils \
   "
 
-echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing software...${NOFMT}"
-if ! sudo apt-get install -y $SOFTWARE_PACKAGES; then
-  echo -e "${RED}FATAL ERROR: Failed to install required software packages${NOFMT}"
+log_info "installing apt software packages..."
+# SC2086 intentional: word-splitting turns the space-separated string into
+# individual arguments to apt-get. Quoting would pass one giant "package name".
+# shellcheck disable=SC2086
+if ! sudo apt-get install -y ${SOFTWARE_PACKAGES}; then
+  log_fatal "failed to install required software packages"
   exit 1
 fi
 
-# create version-agnostic lldb-dap symlink for DAP configurations
+# Version-agnostic lldb-dap symlink so nvim-dap and friends can reference /usr/local/bin/lldb-dap.
+LLDB_DAP_TARGET="/usr/bin/lldb-dap-${LLVM_VERSION}"
 if [ ! -L /usr/local/bin/lldb-dap ]; then
-  echo -e "${GREEN}fractals::${NOFMT}${CYAN}creating lldb-dap symlink...${NOFMT}"
-  sudo ln -s /usr/bin/lldb-dap-18 /usr/local/bin/lldb-dap
+  if [ -x "${LLDB_DAP_TARGET}" ]; then
+    log_info "creating lldb-dap symlink to ${LLDB_DAP_TARGET}..."
+    sudo ln -s "${LLDB_DAP_TARGET}" /usr/local/bin/lldb-dap
+  else
+    log_warn "lldb-dap target ${LLDB_DAP_TARGET} not found; skipping symlink"
+  fi
 else
-  echo -e "${GREEN}fractals::${NOFMT}${CYAN}lldb-dap symlink${NOFMT} ${ORANGE}already exists${NOFMT}"
+  log_skip "lldb-dap symlink"
 fi
 
-##################
-# language support
-##################
-LANGUAGE_PACKAGES=" \
-  lua5.4 \
-  liblua5.4-dev \
+################################################################################
+# Language support
+################################################################################
+LANGUAGE_PACKAGES="\
   default-jdk \
+  liblua5.4-dev \
+  lua5.4 \
   pipx \
   python-is-python3 \
   python3 \
+  python3-debugpy \
   python3-dev \
   python3-mypy \
   python3-pip \
   python3-venv \
   "
 
-# python3-debugpy only available in Ubuntu 23.04+
-if [[ $(lsb_release -rs) >= "23.04" ]]; then
-  LANGUAGE_PACKAGES+="python3-debugpy "
-fi
-
-echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing lua, python...${NOFMT}"
-if ! sudo apt-get install -y $LANGUAGE_PACKAGES; then
-  echo -e "${RED}FATAL ERROR: Failed to install language support packages${NOFMT}"
+log_info "installing lua, python, jdk..."
+# shellcheck disable=SC2086 # intentional word-splitting; see SOFTWARE_PACKAGES note above
+if ! sudo apt-get install -y ${LANGUAGE_PACKAGES}; then
+  log_fatal "failed to install language support packages"
   exit 1
 fi
 
-# install debugpy via pip for older Ubuntu versions
-if [[ $(lsb_release -rs) < "23.04" ]]; then
-  echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing debugpy via pip (Ubuntu < 23.04)...${NOFMT}"
-  pip install --user debugpy
-fi
-
-# pip upgrade disabled - modern Ubuntu pip is sufficient, and PEP 668 blocks system pip modifications
-# echo -e "${GREEN}fractals::${NOFMT}${CYAN}upgrading pip...${NOFMT}"
-# python3 -m pip install --user --upgrade pip setuptools wheel
-
-# snap disabled - snapd doesn't run in WSL2 by default; pyright installed via Mason instead
-# echo -e "${GREEN}fractals::${NOFMT}${CYAN}snap installing pyright... ${NOFMT}"
-# sudo snap install pyright --classic
-
-
-#####################################
-# helper function for tools directory
-#####################################
-ensure_tools_dir() {
-  mkdir -p "${HOME}/tools"
-  cd "${HOME}/tools"
-}
-
-##################################
-# gdb with python support for dap
-##################################
-if ! hash gdb 2> /dev/null; then
-  echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing gdb with python dap support...${NOFMT}"
-  ensure_tools_dir
-  wget "http://ftp.gnu.org/gnu/gdb/gdb-15.1.tar.gz"
-  tar -xvzf gdb-15.1.tar.gz
-  cd gdb-15.1
-  bash configure --with-python=/usr/bin/python --with-gmp=/usr/lib/x86_64-linux-gnu/ --with-mpfr=/usr/lib/x86_64-linux-gnu/
-  make
-  sudo make install
-  gdb --version
-  cd ..
-  rm gdb-15.1.tar.gz
-fi
-
-########
-# nodejs - install early since lua-local-debugger needs npm
-########
-echo -e "installing ${GREEN}fractals::${NOFMT}environment::installing nodejs toolchain..."
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-sudo apt-get install -y nodejs
-
-#################
-# lua + debugger
-################
-if ! hash luarocks 2> /dev/null; then
-  echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing luarocks...${NOFMT}"
-  cd /tmp
-  wget https://luarocks.org/releases/luarocks-3.11.1.tar.gz
-  tar xzf luarocks-3.11.1.tar.gz
-  cd luarocks-3.11.1
-
-  # --- 3) Build and install for Lua 5.4 with versioned rocks dir ---
-  ./configure --prefix=/usr/local \
-              --lua-version=5.4
-  make build
-  sudo make install
-  echo -e "${GREEN}fractals::${NOFMT}${CYAN}cleaning up luarocks tmp dir...${NOFMT}"
-  rm -rf /tmp/luarocks-3.11.1*
-  cd ~
-  export PATH="$HOME/.luarocks/bin:$PATH"
-  echo -e "${GREEN}fractals::${NOFMT}${CYAN}added $HOME/.luarocks/bin: to PATH...${NOFMT}"
+################################################################################
+# Node.js (via nodesource, modern keyring pattern)
+#
+# Uses signed apt source (not the deprecated pipe-curl-to-bash setup_X.x script).
+################################################################################
+if ! command -v node >/dev/null 2>&1 \
+   || [ "$(node --version | cut -d. -f1 | tr -d 'v')" -lt "${NODE_MAJOR}" ]; then
+  log_info "installing nodejs ${NODE_MAJOR}.x..."
+  sudo apt-get install -y ca-certificates curl gnupg
+  sudo mkdir -p /etc/apt/keyrings
+  curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key \
+    | sudo gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
+  echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_${NODE_MAJOR}.x nodistro main" \
+    | sudo tee /etc/apt/sources.list.d/nodesource.list
+  sudo apt-get update
+  sudo apt-get install -y nodejs
 else
-  echo -e "${GREEN}fractals::${NOFMT}${CYAN}luarocks${NOFMT} ${ORANGE}already installed${NOFMT}"
+  log_skip "nodejs >= ${NODE_MAJOR}"
 fi
 
-if ! [ -d "${HOME}/tools/local-lua-debugger-vscode" ]; then
-  if hash npm 2> /dev/null; then
-    echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing lua-local-debugger...${NOFMT}"
-    ensure_tools_dir
-    git clone https://github.com/tomblind/local-lua-debugger-vscode.git
-    cd local-lua-debugger-vscode
-    npm install
-    npm run build
+################################################################################
+# luarocks (built from source; not packaged for Lua 5.4 on all Ubuntus)
+################################################################################
+if ! command -v luarocks >/dev/null 2>&1; then
+  log_info "installing luarocks ${LUAROCKS_VERSION} from source..."
+  (
+    cd /tmp
+    wget "https://luarocks.org/releases/luarocks-${LUAROCKS_VERSION}.tar.gz"
+    tar xzf "luarocks-${LUAROCKS_VERSION}.tar.gz"
+    cd "luarocks-${LUAROCKS_VERSION}"
+    ./configure --prefix=/usr/local --lua-version=5.4
+    make build
+    sudo make install
+    log_info "cleaning up luarocks tmp dir..."
+    rm -rf "/tmp/luarocks-${LUAROCKS_VERSION}"*
+  )
+  export PATH="${HOME}/.luarocks/bin:${PATH}"
+  log_info "added ${HOME}/.luarocks/bin to PATH for this session"
+else
+  log_skip "luarocks"
+fi
+
+################################################################################
+# lua-local-debugger-vscode (needs npm)
+################################################################################
+if [ ! -d "${HOME}/tools/local-lua-debugger-vscode" ]; then
+  if command -v npm >/dev/null 2>&1; then
+    log_info "installing lua-local-debugger..."
+    (
+      ensure_tools_dir
+      git clone https://github.com/tomblind/local-lua-debugger-vscode.git
+      cd local-lua-debugger-vscode
+      npm install
+      npm run build
+    )
   else
-    echo -e "${ORANGE}fractals::${NOFMT}${CYAN}lua-local-debugger${NOFMT} ${ORANGE}cannot be installed,${NOFMT} ${CYAN}npm${NOFMT}${ORANGE} missing${NOFMT}"
+    log_warn "lua-local-debugger cannot be installed, npm missing"
   fi
 else
-  echo -e "${GREEN}fractals::${NOFMT}${CYAN}lua-local-debugger${NOFMT} ${ORANGE}already installed${NOFMT}"
+  log_skip "lua-local-debugger"
 fi
 
-####################################################
-# neovim
-# add neovim repository for latest/manage as deb pkg
-####################################################
-if ! hash nvim 2> /dev/null; then
-    echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing neovim...${NOFMT}"
-    sudo add-apt-repository ppa:neovim-ppa/unstable -y
-    sudo apt update
-    sudo apt install neovim -y
+################################################################################
+# Neovim (unstable PPA)
+################################################################################
+if ! command -v nvim >/dev/null 2>&1; then
+  log_info "installing neovim from ppa:neovim-ppa/unstable..."
+  sudo add-apt-repository ppa:neovim-ppa/unstable -y
+  sudo apt update
+  sudo apt install neovim -y
 
-    # Only do initial config if it's a fresh install
-    echo -e "${GREEN}fractals::${NOFMT}${CYAN}configuring neovim...${NOFMT}"
-    nvim --headless -c 'call mkdir(stdpath("config"), "p") | quit'
+  log_info "creating nvim config directory..."
+  nvim --headless -c 'call mkdir(stdpath("config"), "p") | quit'
 
-    # lazy.nvim bootstraps itself automatically on first launch
-    echo -e "${GREEN}fractals::${NOFMT}${CYAN}lazy.nvim will bootstrap on first nvim launch...${NOFMT}"
+  log_info "lazy.nvim will bootstrap on first nvim launch"
 else
-  echo -e "${GREEN}fractals::${NOFMT}${CYAN}neovim${NOFMT} ${ORANGE}already installed${NOFMT}"
+  log_skip "neovim"
 fi
 
-###############
-# flutter/dart (WSL2-compatible, no snap)
-##############
-# echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing flutter sdk...${NOFMT}"
-# ensure_tools_dir
-# if [ ! -d "${HOME}/tools/flutter" ]; then
-#   git clone https://github.com/flutter/flutter.git -b stable
-# else
-#   echo -e "${GREEN}fractals::${NOFMT}${CYAN}flutter sdk${NOFMT} ${ORANGE}already cloned${NOFMT}"
-# fi
-# export PATH="$HOME/tools/flutter/bin:$PATH"
-# flutter precache
-#
-# # android sdk (command-line tools only, no android studio)
-# echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing android command-line tools...${NOFMT}"
-# ANDROID_SDK_ROOT="${HOME}/tools/android-sdk"
-# if [ ! -d "${ANDROID_SDK_ROOT}/cmdline-tools/latest" ]; then
-#   cd ~/tools
-#   wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O cmdline-tools.zip
-#   unzip -q cmdline-tools.zip
-#   mkdir -p "${ANDROID_SDK_ROOT}/cmdline-tools"
-#   mv cmdline-tools "${ANDROID_SDK_ROOT}/cmdline-tools/latest"
-#   rm cmdline-tools.zip
-# else
-#   echo -e "${GREEN}fractals::${NOFMT}${CYAN}android cmdline-tools${NOFMT} ${ORANGE}already installed${NOFMT}"
-# fi
-#
-# export ANDROID_HOME="${ANDROID_SDK_ROOT}"
-# export PATH="${ANDROID_HOME}/cmdline-tools/latest/bin:${ANDROID_HOME}/platform-tools:$PATH"
-#
-# # install required sdk components
-# echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing android sdk components...${NOFMT}"
-# yes | sdkmanager --licenses > /dev/null 2>&1 || true
-# sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
-#
-# # accept flutter android licenses
-# echo -e "${GREEN}fractals::${NOFMT}${CYAN}accepting flutter android licenses...${NOFMT}"
-# yes | flutter doctor --android-licenses > /dev/null 2>&1 || true
-#
-# echo -e "${GREEN}fractals::${NOFMT}${CYAN}running flutter doctor...${NOFMT}"
-# flutter doctor
-
-# nodejs moved earlier in script (before lua-local-debugger)
-
-######
-# rust
-######
-echo -e "\n${GREEN}fractals::${NOFMT}${CYAN}installing rust toolchain...${NOFMT}"
-if ! hash cargo 2> /dev/null; then
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-    source $HOME/.cargo/env
-    rustup update
+################################################################################
+# Rust (rustup)
+################################################################################
+if ! command -v cargo >/dev/null 2>&1; then
+  log_info "installing rust toolchain via rustup..."
+  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+  # shellcheck source=/dev/null
+  source "${HOME}/.cargo/env"
+  rustup update
 else
-    echo -e "${GREEN}fractals::${NOFMT}${CYAN}rust${NOFMT} ${ORANGE}already installed${NOFMT}"
+  log_skip "rust"
 fi
 
-# pixi/mojo disabled - install script returning 403, install manually if needed:
-# curl -fsSL https://pixi.sh/install.sh | sh
-# echo 'default-channels = ["https://conda.modular.com/max-nightly", "conda-forge"]' >> ${HOME}/.pixi/config.toml
-
-##############################################
-# ble.sh: https://github.com/akinomyoga/ble.sh
-##############################################
+################################################################################
+# ble.sh (readline replacement for bash)
+################################################################################
 if [ ! -d "${HOME}/ble.sh" ]; then
-  echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing ble.sh in ${HOME}...${NOFMT}"
-  cd ~
-  wd=$(pwd)
-  echo -e "${GREEN}fractals::current working directory:${NOFMT} ${CYAN}${wd}${NOFMT}"
-  git clone --recursive --depth 1 --shallow-submodules https://github.com/akinomyoga/ble.sh.git
-  make -C ble.sh install PREFIX=~/.local
-  cd .dotfiles
-  wd=$(pwd)
-  echo -e "${GREEN}fractals::current working directory:${NOFMT} ${CYAN}${wd}${NOFMT}"
+  log_info "installing ble.sh into ${HOME}..."
+  (
+    cd "${HOME}"
+    git clone --recursive --depth 1 --shallow-submodules https://github.com/akinomyoga/ble.sh.git
+    make -C ble.sh install PREFIX="${HOME}/.local"
+  )
 else
-  echo -e "${GREEN}fractals::${NOFMT}${CYAN}ble.sh${NOFMT} ${ORANGE}already installed${NOFMT}"
+  log_skip "ble.sh"
 fi
 
-###########
-# starship:
-###########
-if ! hash starship 2> /dev/null; then
-  echo -e "${GREEN}fractals::${NOFMT}${CYAN}installing starship...${NOFMT}"
+################################################################################
+# starship prompt
+################################################################################
+if ! command -v starship >/dev/null 2>&1; then
+  log_info "installing starship prompt..."
   curl -sS https://starship.rs/install.sh | sh
 else
-  echo -e "${GREEN}fractals::${NOFMT}${CYAN}starship${NOFMT} ${ORANGE}already installed${NOFMT}"
+  log_skip "starship"
 fi
 
-###########
-# COMPLETE
-##########
-echo -e "${GREEN}fractals::${NOFMT}${CYAN}installation complete!${NOFMT}"
-echo -e "${ORANGE}\treminder: farm symlinks for home directory, remove dead links in your actual ${CYAN}.config/${NOFMT} ${ORANGE}directory${NOFMT}"
-echo -e "${ORANGE}\treminder: open neovim, let lazy.nvim boostrap, then run :Lazy sync, :UpdateRemotePlugins, :TSUpdateSync, :checkhealth${NOFMT}"
-echo -e "${ORANGE}\treminder: please restart your terminal session${NOFMT}"
+################################################################################
+# libc++ gdb pretty-printers
+#
+# Ubuntu's libc++-dev packages don't ship the gdb printer script — LLVM keeps
+# it in-tree at libcxx/utils/gdb/libcxx/printers.py but doesn't package it.
+# ~/.gdbinit auto-loads them from ~/.gdb/libcxx/ (see home/.gdbinit).
+# Bump LIBCXX_PRINTERS_BRANCH in the version case block when upgrading libc++.
+################################################################################
+if [ ! -f "${HOME}/.gdb/libcxx/printers.py" ]; then
+  log_info "installing libc++ gdb pretty-printers (${LIBCXX_PRINTERS_BRANCH})..."
+  mkdir -p "${HOME}/.gdb/libcxx"
+  touch "${HOME}/.gdb/libcxx/__init__.py"
+  curl -fsSL -o "${HOME}/.gdb/libcxx/printers.py" \
+    "https://raw.githubusercontent.com/llvm/llvm-project/${LIBCXX_PRINTERS_BRANCH}/libcxx/utils/gdb/libcxx/printers.py"
+else
+  log_skip "libc++ gdb pretty-printers"
+fi
+
+################################################################################
+# Done
+################################################################################
+log_info "installation complete!"
+log_reminder "farm symlinks for home directory (run ./stow_home.sh); remove dead links in your actual .config/ directory"
+log_reminder "open neovim, let lazy.nvim bootstrap, then run :Lazy sync, :UpdateRemotePlugins, :TSUpdateSync, :checkhealth"
+log_reminder "restart your terminal session"

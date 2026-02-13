@@ -13,15 +13,28 @@ lint.linters_by_ft = {
 }
 
 -- Custom cppcheck configuration for better C++ support
--- replace args entirely (defaults include filename which conflicts with --project)
+-- nvim-lint appends the buffer filename by default; disable that so we can
+-- either pass --project= (which forbids extra file args) or append the
+-- filename ourselves when no compile_commands.json exists.
 local cppcheck = lint.linters.cppcheck
+cppcheck.append_fname = false
 cppcheck.args = {
-  "--project=build/compile_commands.json",
   "--enable=warning,style,performance,portability",
-  "--std=c++20",
   "--inline-suppr",
   "--quiet",
   "--template={file}:{line}:{column}: [{id}] {severity}: {message}",
+  function()
+    if vim.fn.isdirectory("build") == 1 then
+      return "--cppcheck-build-dir=build"
+    end
+    return nil
+  end,
+  function()
+    if vim.fn.filereadable("build/compile_commands.json") == 1 then
+      return "--project=build/compile_commands.json"
+    end
+    return vim.api.nvim_buf_get_name(0)
+  end,
 }
 
 -- Custom luacheck config (optional - for Neovim Lua config)

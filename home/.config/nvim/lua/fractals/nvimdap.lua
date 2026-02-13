@@ -10,6 +10,17 @@ require("dapui").setup({
   }
 })
 
+-- baleia: colorize ANSI escape codes in dap-repl and any dap-ui text buffers.
+-- Terminal buffers (used when console = "integratedTerminal") already render
+-- ANSI natively via nvim's :terminal, so this only targets non-terminal DAP buffers.
+local baleia = require("baleia").setup({})
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = { "dap-repl", "dapui_console" },
+  callback = function(args)
+    baleia.automatically(args.buf)
+  end,
+})
+
 -- nvimdap: https://github.com/mfussenegger/nvim-dap
 -- note for future self bc docs were not obvious
 -- dap and dapui provide lua functions once you install the extensions
@@ -115,8 +126,8 @@ dap.configurations.c = {
       return vim.split(args, " +")
     end,
     cwd = function()
-      local git_root = vim.fn.systemlist("git rev-parse --show-toplevel")[1]
-      if git_root and git_root ~= "" then
+      local git_root = vim.fn.systemlist("git rev-parse --show-toplevel 2>/dev/null")[1]
+      if vim.v.shell_error == 0 and git_root and git_root ~= "" then
         print("DEBUG: Running from git root: " .. git_root)
         return git_root
       else
@@ -126,8 +137,25 @@ dap.configurations.c = {
       end
     end,
     stopOnEntry = false,
-    console = "integratedTerminal", -- render ANSI codes
+    -- Program stdout goes to nvim's :terminal (renders ANSI natively).
+    -- ANSI in dap-repl / dapui_console text buffers is handled by baleia.
+    console = "integratedTerminal",
     externalConsole = true,
+    -- ASAN_OPTIONS=detect_leaks=0 disables LeakSanitizer's exit-time check
+    -- when debugging. LSan works by fork()ing a child that ptrace-attaches to
+    -- the parent to walk its memory for unreachable allocations. Under a
+    -- debugger the process is already ptrace'd, so LSan's attach fails and it
+    -- aborts with "LeakSanitizer has encountered a fatal error" — noise, not a
+    -- real leak. Standalone runs keep full leak detection because this env
+    -- override only applies to DAP-launched processes.
+    --
+    -- Format note: lldb-dap expects env as an ARRAY of "KEY=VALUE" strings,
+    -- not a KV object. The object form ({ASAN_OPTIONS = "..."}) is silently
+    -- ignored by the adapter — the launch appears to accept env, but nothing
+    -- actually reaches the target process.
+    env = {
+      "ASAN_OPTIONS=detect_leaks=0",
+    },
   },
   {
     name = "launch gdb",
@@ -142,8 +170,8 @@ dap.configurations.c = {
     end,
     cwd = function()
       -- find git root to ensure consistent cwd regardless of where nvim is opened
-      local git_root = vim.fn.systemlist("git rev-parse --show-toplevel")[1]
-      if git_root and git_root ~= "" then
+      local git_root = vim.fn.systemlist("git rev-parse --show-toplevel 2>/dev/null")[1]
+      if vim.v.shell_error == 0 and git_root and git_root ~= "" then
         print("DEBUG: Running from git root: " .. git_root)
         return git_root
       else

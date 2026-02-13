@@ -124,15 +124,24 @@ export NVM_DIR="$HOME/.nvm"
 
 export EDITOR='nvim'
 
+# Prepend $1 to PATH only if not already present. Keeps re-sourced .bashrc
+# idempotent (previously every re-source stacked another copy of every dir).
+path_prepend() {
+  case ":$PATH:" in
+    *":$1:"*) ;;
+    *) PATH="$1:$PATH" ;;
+  esac
+}
+
 # append extra PATH dirs
-export PATH="/usr/local/bin:$PATH"
-export PATH="$HOME/.local/bin:$PATH"
+path_prepend "/usr/local/bin"
+path_prepend "$HOME/.local/bin"
 
 # flutter/android sdk (uncomment when installed via dev_setup.sh)
-# export ANDROID_HOME="$HOME/tools/android-sdk"
-# export PATH="$HOME/tools/flutter/bin:$PATH"
-# export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$PATH"
-# export PATH="$ANDROID_HOME/platform-tools:$PATH"
+# path_prepend "$HOME/tools/flutter/bin"
+export ANDROID_HOME=$HOME/android-sdk
+path_prepend "$ANDROID_HOME/platform-tools"
+path_prepend "$ANDROID_HOME/cmdline-tools/latest/bin"
 
 # these lines must execute before ble and starship can work
 # autocompeltion
@@ -141,11 +150,20 @@ export PATH="$HOME/.local/bin:$PATH"
 export STARSHIP_CONFIG="${HOME}/.dotfiles/home/.config/starship/starship.toml"
 command -v starship &> /dev/null && eval "$(starship init bash)"
 # pixi/mojo
-export PATH="$HOME/.pixi/bin:$PATH"
-export PATH="$HOME/.local/share/nvim/mason/bin:$PATH"
+path_prepend "$HOME/.pixi/bin"
+path_prepend "$HOME/.local/share/nvim/mason/bin"
+
+export PATH
 
 # lldb debuggers
 #export PYTHONPATH=/usr/lib/llvm-14/lib/python3/dist-packages:$PYTHONPATH
+
+# Ubuntu 24.04's libdebuginfod-common (pulled in transitively by gdb) installs
+# /etc/profile.d/debuginfod.sh which exports DEBUGINFOD_URLS=https://debuginfod.ubuntu.com.
+# LLDB blocks synchronously on debuginfod fetches during `target create`, and the
+# default DEBUGINFOD_MAXTIME of 90s makes every debug session appear to hang.
+# Not useful for typical dev work, unset it here (this runs after the profile script).
+unset DEBUGINFOD_URLS
 
 # claude cli: disable telemetry
 # -> disable all non-essential traffic (recommended)

@@ -191,6 +191,17 @@ require("lazy").setup({
     end,
   },
 
+  -- Render ANSI escape codes as highlights in dap-repl / dap-ui console buffers
+  -- (regular text buffers otherwise print raw escape sequences like ^[[32m).
+  -- submodules=false: baleia's test suite references a submodule with a broken
+  -- git modules path; skipping it avoids lazy.nvim's install-time submodule error.
+  {
+    "m00qek/baleia.nvim",
+    tag = "v1.4.0",
+    submodules = false,
+    dependencies = { "mfussenegger/nvim-dap" },
+  },
+
   -- python virtual environment selector
   {
     "linux-cultist/venv-selector.nvim",
@@ -345,6 +356,7 @@ require("lazy").setup({
     dependencies = {
       "nvim-lua/plenary.nvim",
       "nvim-treesitter/nvim-treesitter",
+      "lewis6991/async.nvim",
     },
     config = function()
       require("refactoring").setup({
