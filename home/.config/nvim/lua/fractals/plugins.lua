@@ -417,4 +417,27 @@ require("lazy").setup({
     "Shatur/neovim-tasks",
     dependencies = { "nvim-lua/plenary.nvim" },
   },
+
+  {
+    "stevearc/conform.nvim",
+    event = { "BufReadPre", "BufNewFile" },
+    opts = {},
+  },
+
+  {
+    "Sarctiann/mojo.nvim",
+    main = "mojo",
+    opts = {
+      keymaps = { signature_help = "<C-k>" },
+      debug = {
+        search_for = {
+          { name = "lldb-dap", role = "dap" },
+          { name = "mojo-lldb-dap", role = "dap" },
+          { name = "_mojo-lldb-dap", role = "dap" },
+          { name = "mojo-lldb", role = "native" },
+          { name = "lldb", role = "native" },
+        },
+      },
+    },
+  },
 })

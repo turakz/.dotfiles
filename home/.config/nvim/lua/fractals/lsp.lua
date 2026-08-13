@@ -63,40 +63,6 @@ vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, {
 })
 
 
--- manual LSP configs
-
--- mojo
-vim.filetype.add({
-    extension = {
-        mojo = 'mojo',
-        ['🔥'] = 'mojo',
-    },
-})
-
-vim.lsp.config.mojo = {
-    cmd = { vim.fn.getcwd() .. '/.pixi/envs/default/bin/mojo-lsp-server' },
-    filetypes = { 'mojo' },
-    root_markers = { 'pixi.toml', 'pyproject.toml', '.git' },
-    single_file_support = true,
-    capabilities = capabilities,
-}
-
-vim.lsp.enable('mojo')
-
-vim.api.nvim_create_autocmd('LspAttach', {
-    callback = function(args)
-        local client = vim.lsp.get_client_by_id(args.data.client_id)
-        if client and client.name == 'mojo' then
-            vim.keymap.set("n", "<leader>fmt", function()
-                local file = vim.fn.expand("%:p")
-                vim.cmd("silent !mojo format --quiet " .. vim.shellescape(file))
-                vim.cmd("edit!")
-            end, { buffer = args.buf, desc = "Format Mojo file" })
-        end
-    end,
-})
-
-
 -- lspconfig: DEPRECATED
 -- Flutter manual setup
 require('flutter-tools').setup {

@@ -83,10 +83,19 @@ dap.adapters.gdb = {
 -- - llvm/clang symbol tables (fast symbol resolution)
 -- - stl container pretty-printing (std::vector, std::map, etc.)
 -- prefer lldb over gdb for template-heavy c++ codebases
+local function find_lldb_dap()
+  for _, v in ipairs({ 21, 20, 19, 18 }) do
+    local path = "/usr/bin/lldb-dap-" .. v
+    if vim.fn.executable(path) == 1 then
+      return path
+    end
+  end
+  return "lldb-dap"
+end
+
 dap.adapters.lldb = {
   type = "executable",
-  --command = "/usr/bin/lldb-vscode-14",
-  command = "/usr/local/bin/lldb-dap", -- renamed from vscode in 18
+  command = find_lldb_dap(),
   name = "lldb",
   options = {
     initialize_timeout_sec = 30,

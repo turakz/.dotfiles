@@ -111,19 +111,6 @@ if ! sudo apt-get install -y ${SOFTWARE_PACKAGES}; then
   exit 1
 fi
 
-# Version-agnostic lldb-dap symlink so nvim-dap and friends can reference /usr/local/bin/lldb-dap.
-LLDB_DAP_TARGET="/usr/bin/lldb-dap-${LLVM_VERSION}"
-if [ ! -L /usr/local/bin/lldb-dap ]; then
-  if [ -x "${LLDB_DAP_TARGET}" ]; then
-    log_info "creating lldb-dap symlink to ${LLDB_DAP_TARGET}..."
-    sudo ln -s "${LLDB_DAP_TARGET}" /usr/local/bin/lldb-dap
-  else
-    log_warn "lldb-dap target ${LLDB_DAP_TARGET} not found; skipping symlink"
-  fi
-else
-  log_skip "lldb-dap symlink"
-fi
-
 ################################################################################
 # Language support
 ################################################################################
@@ -141,7 +128,7 @@ LANGUAGE_PACKAGES="\
   python3-venv \
   "
 
-log_info "installing lua, python, jdk..."
+log_info "installing jdk, lua, pipx, python..."
 # shellcheck disable=SC2086 # intentional word-splitting; see SOFTWARE_PACKAGES note above
 if ! sudo apt-get install -y ${LANGUAGE_PACKAGES}; then
   log_fatal "failed to install language support packages"
@@ -282,7 +269,8 @@ else
   log_skip "libc++ gdb pretty-printers"
 fi
 
-################################################################################
+
+###############################################################################
 # Done
 ################################################################################
 log_info "installation complete!"
