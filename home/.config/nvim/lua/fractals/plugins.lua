@@ -501,6 +501,32 @@ require("lazy").setup({
           })
         end,
       })
+
+      -- Patch the plugin's debug build to inject `-I <root>` (same convention
+      -- as LSP + MojoTest — the plugin's `mojo build` invocation omits it,
+      -- so cross-package imports fail to resolve during the debug build).
+      require("mojo.adapters.dap").build = function()
+        local file = vim.fn.expand("%:p")
+        local mojo = require("mojo.env").get_mojo_cmd()
+        local root = require("mojo.env.util").root_for(file)
+        if not (mojo and root and file ~= "") then
+          vim.notify("Mojo debug: missing mojo binary, project root, or file",
+            vim.log.levels.ERROR)
+          return nil
+        end
+        local dbg_dir = vim.fs.joinpath(root, "_mojo-debug")
+        vim.fn.mkdir(dbg_dir, "p")
+        local out = vim.fs.joinpath(dbg_dir, vim.fn.fnamemodify(file, ":t:r") .. ".bin")
+        local result = vim.fn.system({
+          mojo, "build", "--debug-level=full", "-O0",
+          "-I", root, file, "-o", out,
+        })
+        if vim.v.shell_error ~= 0 then
+          vim.notify("Mojo debug: build failed\n" .. result, vim.log.levels.ERROR)
+          return nil
+        end
+        return out
+      end
     end,
   },
 })
