@@ -439,5 +439,68 @@ require("lazy").setup({
         },
       },
     },
+    config = function(_, opts)
+      require("mojo").setup(opts)
+
+      -- Mirror of the plugin's private setup_run_terminal(): themed winbar,
+      -- clean statusline, q/<Esc>/<CR> close in normal + terminal modes.
+      local function style_run_terminal()
+        local buf = vim.api.nvim_get_current_buf()
+        local win = vim.api.nvim_get_current_win()
+        vim.bo[buf].buflisted = false
+        vim.b[buf].mojo_run = true
+        vim.api.nvim_set_hl(0, "MojoRunWinBar", { bg = "#f0903a", fg = "#ffffff" })
+        vim.wo[win].winbar = "%#MojoRunWinBar#  Press [q] [Esc] or [Enter] to close this pane  "
+        vim.wo[win].winhl = "Normal:NormalFloat"
+        vim.wo[win].statusline = " "
+        local km = { noremap = true, silent = true }
+        for _, mode in ipairs({ "n", "t" }) do
+          local rhs = mode == "n" and ":close<CR>" or "<C-\\><C-N>:close<CR>"
+          for _, key in ipairs({ "q", "<Esc>", "<CR>" }) do
+            vim.api.nvim_buf_set_keymap(buf, mode, key, rhs, km)
+          end
+        end
+        vim.api.nvim_create_autocmd("WinEnter", { buffer = buf, callback = function()
+          local cur = vim.api.nvim_get_current_win()
+          if vim.api.nvim_win_is_valid(cur) and vim.api.nvim_win_get_buf(cur) == buf then
+            vim.wo[cur].statusline = " "
+          end
+        end })
+      end
+
+      -- :MojoTest — run current file with `-I <project root>` (Modular stdlib
+      -- layout: named package at workspace root, imports resolve via that -I).
+      vim.api.nvim_create_user_command("MojoTest", function()
+        if vim.bo.filetype ~= "mojo" then
+          return vim.notify("MojoTest: not a Mojo file", vim.log.levels.ERROR)
+        end
+        local file = vim.fn.expand("%:p")
+        local mojo = require("mojo.env").get_mojo_cmd()
+        local root = require("mojo.env.util").root_for(file)
+        if not (mojo and root) then
+          return vim.notify("MojoTest: missing mojo binary or project root", vim.log.levels.ERROR)
+        end
+        vim.cmd(("belowright terminal %s run -I %s %s"):format(
+          mojo, vim.fn.shellescape(root), vim.fn.shellescape(file)))
+        style_run_terminal()
+      end, { desc = "Run current Mojo file with <project root> on -I" })
+
+      -- mojo-lsp-server takes -I as a CLI arg (per --help); its LSP settings
+      -- don't expose an equivalent. Modular stdlib layout: source is a named
+      -- package at root, tests under test/ mirror the source tree.
+      vim.lsp.config("mojo", {
+        cmd = function(dispatchers, config)
+          local root = (config and config.root_dir) or vim.fn.getcwd()
+          local server = require("mojo.env").get_lsp_cmd(root) or { "mojo-lsp-server" }
+          table.insert(server, "-I")
+          table.insert(server, root)
+          return vim.lsp.rpc.start(server, dispatchers, {
+            cwd = config and config.cmd_cwd,
+            env = config and config.cmd_env,
+            detached = config and config.detached,
+          })
+        end,
+      })
+    end,
   },
 })
